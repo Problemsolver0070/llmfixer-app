@@ -4,7 +4,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const apiCall = vi.fn();
 vi.mock('@/lib/api', () => ({ api: (...a: unknown[]) => apiCall(...a) }));
 
-const onAuthStateChange = vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } }));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const onAuthStateChange = vi.fn((_cb: any) => ({ data: { subscription: { unsubscribe: vi.fn() } } }));
 const getSession = vi.fn();
 vi.mock('@/lib/supabase', () => ({
   supabase: {
