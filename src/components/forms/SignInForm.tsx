@@ -4,24 +4,108 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { supabase } from '@/lib/supabase';
 
+const dashboardRedirect = () => `${window.location.origin}/app/dashboard`;
+
+function isUnverified(err: { code?: string; message?: string } | null): boolean {
+  if (!err) return false;
+  if (err.code === 'email_not_confirmed') return true;
+  return /not confirmed/i.test(err.message ?? '');
+}
+
 export function SignInForm() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [unverified, setUnverified] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setUnverified(false);
+    setResendSent(false);
+    setResendError(null);
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
+      if (isUnverified(error as { code?: string; message?: string })) {
+        setUnverified(true);
+        return;
+      }
       setError('Wrong email or password.');
       return;
     }
     navigate('/app/dashboard');
+  }
+
+  async function onResend() {
+    setResending(true);
+    setResendError(null);
+    setResendSent(false);
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: dashboardRedirect() },
+    });
+    setResending(false);
+    if (error) {
+      setResendError(error.message);
+      return;
+    }
+    setResendSent(true);
+  }
+
+  if (unverified) {
+    return (
+      <div>
+        <p style={{ fontSize: 13, color: 'var(--color-text)', marginBottom: 10 }}>
+          Email not verified yet for <strong>{email}</strong>.
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--color-text-dim)', marginBottom: 18 }}>
+          Click the link in your inbox to finish creating your account, or send a new one.
+        </p>
+        {resendSent && (
+          <p style={{ color: 'var(--color-success)', fontSize: 12, marginBottom: 12 }}>
+            New link sent.
+          </p>
+        )}
+        {resendError && (
+          <p role="alert" style={{ color: 'var(--color-danger)', fontSize: 12, marginBottom: 12 }}>
+            {resendError}
+          </p>
+        )}
+        <Button onClick={onResend} loading={resending} loadingLabel="Sending...">
+          Resend verification email
+        </Button>
+        <p
+          style={{
+            textAlign: 'center',
+            fontSize: 11,
+            color: 'var(--color-text-dim)',
+            marginTop: 18,
+          }}
+        >
+          <button
+            onClick={() => setUnverified(false)}
+            style={{
+              background: 'transparent',
+              border: 0,
+              color: 'var(--color-link)',
+              cursor: 'pointer',
+              padding: 0,
+              font: 'inherit',
+            }}
+          >
+            Use a different account
+          </button>
+        </p>
+      </div>
+    );
   }
 
   return (
