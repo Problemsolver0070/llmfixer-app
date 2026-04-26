@@ -1,5 +1,6 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import { RequireAuth, RequireAdmin } from '@/lib/auth';
+import Login from '@/pages/public/Login';
 
 const placeholder = (label: string) => () => (
   <div style={{ padding: 24 }}>
@@ -9,7 +10,7 @@ const placeholder = (label: string) => () => (
 
 export const routes: RouteObject[] = [
   { path: '/', Component: placeholder('Landing') },
-  { path: '/login', Component: placeholder('Login') },
+  { path: '/login', Component: Login },
   { path: '/signup', Component: placeholder('Sign up') },
   { path: '/forgot', Component: placeholder('Forgot password') },
   { path: '/reset', Component: placeholder('Reset password') },
