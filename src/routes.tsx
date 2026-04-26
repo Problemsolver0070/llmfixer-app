@@ -1,6 +1,7 @@
 import { Navigate, Outlet, type RouteObject } from 'react-router-dom';
 import { RequireAuth, RequireAdmin } from '@/lib/auth';
 import { AppShell } from '@/components/shell/AppShell';
+import { AdminLayout } from '@/pages/app/admin/AdminLayout';
 import Login from '@/pages/public/Login';
 import SignUp from '@/pages/public/SignUp';
 import Forgot from '@/pages/public/Forgot';
@@ -11,6 +12,9 @@ import Setup from '@/pages/app/Setup';
 import Keys from '@/pages/app/Keys';
 import Billing from '@/pages/app/Billing';
 import Account from '@/pages/app/Account';
+import AdminPromos from '@/pages/app/admin/Promos';
+import AdminUsers from '@/pages/app/admin/Users';
+import AdminMetrics from '@/pages/app/admin/Metrics';
 
 const placeholder = (label: string) => () => (
   <div style={{ padding: 24 }}>
@@ -41,17 +45,15 @@ export const routes: RouteObject[] = [
       { path: 'account', Component: Account },
       {
         path: 'admin',
-        element: <RequireAdmin><AdminOutlet /></RequireAdmin>,
+        element: <RequireAdmin><AdminLayout /></RequireAdmin>,
         children: [
           { index: true, element: <Navigate to="/app/admin/promos" replace /> },
-          { path: 'promos', Component: placeholder('Admin promos') },
-          { path: 'users', Component: placeholder('Admin users') },
-          { path: 'metrics', Component: placeholder('Admin metrics') },
+          { path: 'promos', Component: AdminPromos },
+          { path: 'users', Component: AdminUsers },
+          { path: 'metrics', Component: AdminMetrics },
         ],
       },
     ],
   },
   { path: '*', Component: placeholder('Not found') },
 ];
-
-function AdminOutlet() { return <Outlet />; }
