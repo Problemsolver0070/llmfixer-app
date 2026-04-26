@@ -2,6 +2,7 @@ import { Navigate, Outlet, type RouteObject } from 'react-router-dom';
 import { RequireAuth, RequireAdmin } from '@/lib/auth';
 import { AppShell } from '@/components/shell/AppShell';
 import { AdminLayout } from '@/pages/app/admin/AdminLayout';
+import Landing from '@/pages/public/Landing';
 import Login from '@/pages/public/Login';
 import SignUp from '@/pages/public/SignUp';
 import Forgot from '@/pages/public/Forgot';
@@ -23,7 +24,7 @@ const placeholder = (label: string) => () => (
 );
 
 export const routes: RouteObject[] = [
-  { path: '/', Component: placeholder('Landing') },
+  { path: '/', Component: Landing },
   { path: '/login', Component: Login },
   { path: '/signup', Component: SignUp },
   { path: '/forgot', Component: Forgot },
