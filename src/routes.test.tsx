@@ -2,6 +2,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, RouterProvider, createMemoryRouter } from 'react-router-dom';
 
+vi.mock('@/lib/supabase', () => ({
+  supabase: { auth: { signInWithPassword: vi.fn(), signUp: vi.fn(), resetPasswordForEmail: vi.fn(), updateUser: vi.fn(), resend: vi.fn(), signOut: vi.fn() } },
+}));
 vi.mock('@/hooks/useSession', () => ({
   useSession: () => ({ session: null, user: null, loading: false, emailVerified: false }),
 }));
