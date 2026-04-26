@@ -34,7 +34,7 @@ export function useKeys() {
     setLoading(false);
   }, []);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- refresh is stable (useCallback with [])
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- initial fetch on mount; refresh is stable (useCallback with [])
   useEffect(() => { refresh(); }, [refresh]);
 
   const create = useCallback(async (label?: string): Promise<CreatedKey> => {

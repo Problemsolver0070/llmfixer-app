@@ -5,6 +5,10 @@ import { MemoryRouter, RouterProvider, createMemoryRouter } from 'react-router-d
 vi.mock('@/lib/supabase', () => ({
   supabase: { auth: { signInWithPassword: vi.fn(), signUp: vi.fn(), resetPasswordForEmail: vi.fn(), updateUser: vi.fn(), resend: vi.fn(), signOut: vi.fn() } },
 }));
+vi.mock('@/lib/api', () => ({ api: vi.fn() }));
+vi.mock('@/hooks/useKeys', () => ({
+  useKeys: () => ({ keys: [], loading: false, error: null, create: vi.fn(), revoke: vi.fn(), refresh: vi.fn() }),
+}));
 vi.mock('@/hooks/useSession', () => ({
   useSession: () => ({ session: null, user: null, loading: false, emailVerified: false }),
 }));
