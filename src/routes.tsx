@@ -9,6 +9,7 @@ import VerifyEmail from '@/pages/public/VerifyEmail';
 import Dashboard from '@/pages/app/Dashboard';
 import Setup from '@/pages/app/Setup';
 import Keys from '@/pages/app/Keys';
+import Billing from '@/pages/app/Billing';
 
 const placeholder = (label: string) => () => (
   <div style={{ padding: 24 }}>
@@ -35,7 +36,7 @@ export const routes: RouteObject[] = [
       { path: 'dashboard', Component: Dashboard },
       { path: 'setup', Component: Setup },
       { path: 'keys', Component: Keys },
-      { path: 'billing', Component: placeholder('Billing') },
+      { path: 'billing', Component: Billing },
       { path: 'account', Component: placeholder('Account') },
       {
         path: 'admin',

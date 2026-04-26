@@ -37,7 +37,11 @@ export function useSubscription() {
     }
   }, [account?.user.paypal_sub_id]);
 
-  useEffect(() => { fetchSubscription(); }, [fetchSubscription]);
+  useEffect(() => {
+    // Initial fetch on mount; setState within async callback is intentional here.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchSubscription();
+  }, [fetchSubscription]);
 
   const activate = useCallback(async (paypalSubId: string) => {
     await api('/v1/billing/subscriptions/activate', {
