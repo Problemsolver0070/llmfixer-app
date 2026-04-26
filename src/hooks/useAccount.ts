@@ -1,3 +1,7 @@
+import { useCallback, useEffect, useState } from 'react';
+import { api } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
+
 export interface AccountData {
   user: {
     id: string;
@@ -21,5 +25,34 @@ export interface UseAccountResult {
 }
 
 export function useAccount(): UseAccountResult {
-  return { data: null, loading: true, error: null, refresh: async () => {} };
+  const [data, setData] = useState<AccountData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchOnce = useCallback(async () => {
+    setLoading(true);
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+    try {
+      const result = await api<AccountData>('/v1/account');
+      setData(result);
+      setError(null);
+    } catch (e) {
+      setError(e as Error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOnce();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => fetchOnce());
+    return () => sub.subscription.unsubscribe();
+  }, [fetchOnce]);
+
+  return { data, loading, error, refresh: fetchOnce };
 }

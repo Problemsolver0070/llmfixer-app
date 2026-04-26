@@ -1,0 +1,61 @@
+import { renderHook, waitFor, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const apiCall = vi.fn();
+vi.mock('@/lib/api', () => ({ api: (...a: unknown[]) => apiCall(...a) }));
+
+const onAuthStateChange = vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } }));
+const getSession = vi.fn();
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: () => getSession(),
+      onAuthStateChange: (cb: unknown) => onAuthStateChange(cb),
+    },
+  },
+}));
+
+import { useAccount } from './useAccount';
+
+describe('useAccount', () => {
+  beforeEach(() => {
+    apiCall.mockReset();
+    getSession.mockResolvedValue({
+      data: { session: { access_token: 't', user: { id: 'u' } } },
+    });
+  });
+
+  it('fetches /v1/account on mount and exposes the result', async () => {
+    apiCall.mockResolvedValue({
+      user: { id: 'u', email: 'a@b.c', role: 'user', status: 'trial' },
+      requests_this_week: 12, active_key_count: 1,
+    });
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(apiCall).toHaveBeenCalledWith('/v1/account');
+    expect(result.current.data?.user.email).toBe('a@b.c');
+    expect(result.current.data?.requests_this_week).toBe(12);
+  });
+
+  it('refresh() refetches', async () => {
+    apiCall.mockResolvedValueOnce({
+      user: { id: 'u', email: 'a@b.c', role: 'user', status: 'trial' },
+      requests_this_week: 1, active_key_count: 0,
+    }).mockResolvedValueOnce({
+      user: { id: 'u', email: 'a@b.c', role: 'user', status: 'active' },
+      requests_this_week: 1, active_key_count: 0,
+    });
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.data?.user.status).toBe('trial'));
+    await act(async () => { await result.current.refresh(); });
+    expect(result.current.data?.user.status).toBe('active');
+  });
+
+  it('skips fetch when there is no session', async () => {
+    getSession.mockResolvedValueOnce({ data: { session: null } });
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(apiCall).not.toHaveBeenCalled();
+    expect(result.current.data).toBeNull();
+  });
+});
