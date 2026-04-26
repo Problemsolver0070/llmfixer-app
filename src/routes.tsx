@@ -2,6 +2,8 @@ import { Navigate, type RouteObject } from 'react-router-dom';
 import { RequireAuth, RequireAdmin } from '@/lib/auth';
 import Login from '@/pages/public/Login';
 import SignUp from '@/pages/public/SignUp';
+import Forgot from '@/pages/public/Forgot';
+import Reset from '@/pages/public/Reset';
 
 const placeholder = (label: string) => () => (
   <div style={{ padding: 24 }}>
@@ -13,8 +15,8 @@ export const routes: RouteObject[] = [
   { path: '/', Component: placeholder('Landing') },
   { path: '/login', Component: Login },
   { path: '/signup', Component: SignUp },
-  { path: '/forgot', Component: placeholder('Forgot password') },
-  { path: '/reset', Component: placeholder('Reset password') },
+  { path: '/forgot', Component: Forgot },
+  { path: '/reset', Component: Reset },
   { path: '/verify-email', Component: placeholder('Verify email') },
   {
     path: '/app',
