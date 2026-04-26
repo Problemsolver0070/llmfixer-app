@@ -10,6 +10,7 @@ import Dashboard from '@/pages/app/Dashboard';
 import Setup from '@/pages/app/Setup';
 import Keys from '@/pages/app/Keys';
 import Billing from '@/pages/app/Billing';
+import Account from '@/pages/app/Account';
 
 const placeholder = (label: string) => () => (
   <div style={{ padding: 24 }}>
@@ -37,7 +38,7 @@ export const routes: RouteObject[] = [
       { path: 'setup', Component: Setup },
       { path: 'keys', Component: Keys },
       { path: 'billing', Component: Billing },
-      { path: 'account', Component: placeholder('Account') },
+      { path: 'account', Component: Account },
       {
         path: 'admin',
         element: <RequireAdmin><AdminOutlet /></RequireAdmin>,
