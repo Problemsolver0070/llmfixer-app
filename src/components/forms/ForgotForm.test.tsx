@@ -23,4 +23,15 @@ describe('ForgotForm', () => {
       expect(screen.getByText(/if an account exists/i)).toBeInTheDocument(),
     );
   });
+
+  it('lets the user resend the reset link from the success state', async () => {
+    resetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
+    render(<MemoryRouter><ForgotForm /></MemoryRouter>);
+    await userEvent.type(screen.getByLabelText(/email/i), 'a@b.c');
+    await userEvent.click(screen.getByRole('button', { name: /send reset link/i }));
+    await screen.findByText(/if an account exists/i);
+    await userEvent.click(screen.getByRole('button', { name: /resend link/i }));
+    expect(resetPasswordForEmail).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(screen.getByText(/new link sent/i)).toBeInTheDocument());
+  });
 });
