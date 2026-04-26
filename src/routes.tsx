@@ -4,6 +4,7 @@ import Login from '@/pages/public/Login';
 import SignUp from '@/pages/public/SignUp';
 import Forgot from '@/pages/public/Forgot';
 import Reset from '@/pages/public/Reset';
+import VerifyEmail from '@/pages/public/VerifyEmail';
 
 const placeholder = (label: string) => () => (
   <div style={{ padding: 24 }}>
@@ -17,7 +18,7 @@ export const routes: RouteObject[] = [
   { path: '/signup', Component: SignUp },
   { path: '/forgot', Component: Forgot },
   { path: '/reset', Component: Reset },
-  { path: '/verify-email', Component: placeholder('Verify email') },
+  { path: '/verify-email', Component: VerifyEmail },
   {
     path: '/app',
     element: <RequireAuth><AppOutlet /></RequireAuth>,
