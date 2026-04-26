@@ -8,3 +8,6 @@ dist-ssr
 *.log
 .vite
 coverage
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
