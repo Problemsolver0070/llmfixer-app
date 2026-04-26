@@ -1,4 +1,5 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { Navigate, type RouteObject } from 'react-router-dom';
+import { RequireAuth, RequireAdmin } from '@/lib/auth';
 
 const placeholder = (label: string) => () => (
   <div style={{ padding: 24 }}>
@@ -6,7 +7,7 @@ const placeholder = (label: string) => () => (
   </div>
 );
 
-export const router = createBrowserRouter([
+export const routes: RouteObject[] = [
   { path: '/', Component: placeholder('Landing') },
   { path: '/login', Component: placeholder('Login') },
   { path: '/signup', Component: placeholder('Sign up') },
@@ -15,6 +16,7 @@ export const router = createBrowserRouter([
   { path: '/verify-email', Component: placeholder('Verify email') },
   {
     path: '/app',
+    element: <RequireAuth><AppOutlet /></RequireAuth>,
     children: [
       { index: true, element: <Navigate to="/app/dashboard" replace /> },
       { path: 'dashboard', Component: placeholder('Dashboard') },
@@ -24,8 +26,9 @@ export const router = createBrowserRouter([
       { path: 'account', Component: placeholder('Account') },
       {
         path: 'admin',
+        element: <RequireAdmin><AdminOutlet /></RequireAdmin>,
         children: [
-          { index: true, Component: placeholder('Admin promos') },
+          { index: true, element: <Navigate to="/app/admin/promos" replace /> },
           { path: 'promos', Component: placeholder('Admin promos') },
           { path: 'users', Component: placeholder('Admin users') },
           { path: 'metrics', Component: placeholder('Admin metrics') },
@@ -34,4 +37,8 @@ export const router = createBrowserRouter([
     ],
   },
   { path: '*', Component: placeholder('Not found') },
-]);
+];
+
+import { Outlet } from 'react-router-dom';
+function AppOutlet() { return <Outlet />; }
+function AdminOutlet() { return <Outlet />; }
