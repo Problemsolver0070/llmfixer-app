@@ -7,6 +7,7 @@ import Forgot from '@/pages/public/Forgot';
 import Reset from '@/pages/public/Reset';
 import VerifyEmail from '@/pages/public/VerifyEmail';
 import Dashboard from '@/pages/app/Dashboard';
+import Keys from '@/pages/app/Keys';
 
 const placeholder = (label: string) => () => (
   <div style={{ padding: 24 }}>
@@ -32,7 +33,7 @@ export const routes: RouteObject[] = [
       { index: true, element: <Navigate to="/app/dashboard" replace /> },
       { path: 'dashboard', Component: Dashboard },
       { path: 'setup', Component: placeholder('Setup') },
-      { path: 'keys', Component: placeholder('Keys') },
+      { path: 'keys', Component: Keys },
       { path: 'billing', Component: placeholder('Billing') },
       { path: 'account', Component: placeholder('Account') },
       {
