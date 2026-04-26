@@ -34,7 +34,7 @@ describe('routes', () => {
   it('renders the public landing at /', () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/'] });
     render(<RouterProvider router={router} />);
-    expect(screen.getByText(/landing/i)).toBeInTheDocument();
+    expect(screen.getByText(/frontier models forget/i)).toBeInTheDocument();
   });
 });
 
