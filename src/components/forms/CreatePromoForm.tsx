@@ -17,13 +17,28 @@ export function CreatePromoForm({ onCreate }: Props) {
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    const amountInt = Number.parseInt(amount, 10);
+    const safeAmount = Number.isFinite(amountInt) ? amountInt : 0;
+    if (safeAmount < 1) {
+      setError('Amount must be at least 1');
+      return;
+    }
+    let maxRedemptionsInt: number | null = null;
+    if (maxRedemptions) {
+      const parsed = Number.parseInt(maxRedemptions, 10);
+      if (!Number.isFinite(parsed) || parsed < 1) {
+        setError('Max redemptions must be at least 1');
+        return;
+      }
+      maxRedemptionsInt = parsed;
+    }
     setLoading(true);
     try {
       await onCreate({
         code: code.toUpperCase(),
         type,
-        amount_int: Number.parseInt(amount, 10),
-        max_redemptions: maxRedemptions ? Number.parseInt(maxRedemptions, 10) : null,
+        amount_int: safeAmount,
+        max_redemptions: maxRedemptionsInt,
         expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
         active: true,
       });
