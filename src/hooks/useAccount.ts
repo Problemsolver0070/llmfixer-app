@@ -52,7 +52,15 @@ export function useAccount(): UseAccountResult {
     // Initial fetch on mount; setState within async callback is intentional here.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchOnce();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => { void fetchOnce(); });
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        setData(null);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+      void fetchOnce();
+    });
     return () => sub.subscription.unsubscribe();
   }, [fetchOnce]);
 
