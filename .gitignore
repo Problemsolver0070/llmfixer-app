@@ -13,3 +13,4 @@ vite.config.js
 vite.config.d.ts
 .preview-*.png
 .playwright-mcp/
+.claude/

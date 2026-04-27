@@ -4,8 +4,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const apiCall = vi.fn();
 vi.mock('@/lib/api', () => ({ api: (...a: unknown[]) => apiCall(...a) }));
 
+let lastAuthCb: ((event: string, session: unknown) => void) | null = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const onAuthStateChange = vi.fn((_cb: any) => ({ data: { subscription: { unsubscribe: vi.fn() } } }));
+const onAuthStateChange = vi.fn((cb: any) => {
+  lastAuthCb = cb;
+  return { data: { subscription: { unsubscribe: vi.fn() } } };
+});
 const getSession = vi.fn();
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -58,5 +62,18 @@ describe('useAccount', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(apiCall).not.toHaveBeenCalled();
     expect(result.current.data).toBeNull();
+  });
+
+  it('clears data when auth fires SIGNED_OUT', async () => {
+    apiCall.mockResolvedValue({
+      user: { id: 'u', email: 'a@b.c', role: 'user', status: 'trial' },
+      requests_this_week: 1, active_key_count: 0,
+    });
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.data?.user.email).toBe('a@b.c'));
+    await act(async () => {
+      lastAuthCb?.('SIGNED_OUT', null);
+    });
+    await waitFor(() => expect(result.current.data).toBeNull());
   });
 });
