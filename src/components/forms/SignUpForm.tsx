@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { supabase } from '@/lib/supabase';
@@ -7,7 +7,6 @@ import { supabase } from '@/lib/supabase';
 const dashboardRedirect = () => `${window.location.origin}/app/dashboard`;
 
 export function SignUpForm() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -27,28 +26,17 @@ export function SignUpForm() {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: dashboardRedirect() },
     });
+    setLoading(false);
     if (error) {
-      setLoading(false);
       setError(error.message);
       return;
     }
-    if (data?.session) {
-      setLoading(false);
-      navigate('/app/dashboard');
-      return;
-    }
-    const signIn = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (signIn.error) {
-      setSignedUp(true);
-      return;
-    }
-    navigate('/app/dashboard');
+    setSignedUp(true);
   }
 
   async function onResend() {
