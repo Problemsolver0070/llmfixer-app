@@ -76,4 +76,65 @@ describe('useAccount', () => {
     });
     await waitFor(() => expect(result.current.data).toBeNull());
   });
+
+  it('clears then refetches when auth fires SIGNED_OUT then SIGNED_IN', async () => {
+    apiCall
+      .mockResolvedValueOnce({
+        user: { id: 'u', email: 'a@b.c', role: 'user', status: 'trial' },
+        requests_this_week: 1, active_key_count: 0,
+      })
+      .mockResolvedValueOnce({
+        user: { id: 'u2', email: 'second@b.c', role: 'user', status: 'active' },
+        requests_this_week: 7, active_key_count: 2,
+      });
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.data?.user.email).toBe('a@b.c'));
+
+    // Sign out: data clears.
+    await act(async () => {
+      lastAuthCb?.('SIGNED_OUT', null);
+    });
+    await waitFor(() => expect(result.current.data).toBeNull());
+
+    // Magic-link / password sign-in: SIGNED_IN must trigger a refetch.
+    await act(async () => {
+      lastAuthCb?.('SIGNED_IN', { access_token: 't2', user: { id: 'u2' } });
+    });
+    await waitFor(() => expect(result.current.data?.user.email).toBe('second@b.c'));
+    expect(result.current.data?.user.status).toBe('active');
+    expect(apiCall).toHaveBeenCalledTimes(2);
+  });
+
+  it('refetches on USER_UPDATED', async () => {
+    apiCall
+      .mockResolvedValueOnce({
+        user: { id: 'u', email: 'a@b.c', role: 'user', status: 'trial' },
+        requests_this_week: 1, active_key_count: 0,
+      })
+      .mockResolvedValueOnce({
+        user: { id: 'u', email: 'updated@b.c', role: 'user', status: 'active' },
+        requests_this_week: 1, active_key_count: 0,
+      });
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.data?.user.email).toBe('a@b.c'));
+    await act(async () => {
+      lastAuthCb?.('USER_UPDATED', { access_token: 't', user: { id: 'u' } });
+    });
+    await waitFor(() => expect(result.current.data?.user.email).toBe('updated@b.c'));
+  });
+
+  it('does not refetch on TOKEN_REFRESHED', async () => {
+    apiCall.mockResolvedValue({
+      user: { id: 'u', email: 'a@b.c', role: 'user', status: 'trial' },
+      requests_this_week: 1, active_key_count: 0,
+    });
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.data?.user.email).toBe('a@b.c'));
+    expect(apiCall).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      lastAuthCb?.('TOKEN_REFRESHED', { access_token: 't', user: { id: 'u' } });
+    });
+    // Hourly token rotation should not thrash /v1/account.
+    expect(apiCall).toHaveBeenCalledTimes(1);
+  });
 });

@@ -59,7 +59,19 @@ export function useAccount(): UseAccountResult {
         setLoading(false);
         return;
       }
-      void fetchOnce();
+      // Refresh on auth events that indicate the active session/user changed.
+      // SIGNED_IN fires after a magic-link / password sign-in (the session
+      // arrives via URL fragment); USER_UPDATED fires after email change /
+      // password reset; INITIAL_SESSION fires on tab restore. We skip
+      // TOKEN_REFRESHED (hourly silent rotation) because the user/account
+      // payload is unchanged and we don't want to thrash the API.
+      if (
+        event === 'SIGNED_IN' ||
+        event === 'USER_UPDATED' ||
+        event === 'INITIAL_SESSION'
+      ) {
+        void fetchOnce();
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, [fetchOnce]);
