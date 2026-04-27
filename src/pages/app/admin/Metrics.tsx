@@ -18,7 +18,14 @@ function formatUsd(cents: number): string {
 }
 
 export default function Metrics() {
-  const { data, loading } = useAdminMetrics();
+  const { data, loading, error } = useAdminMetrics();
+  if (error) {
+    return (
+      <p role="alert" style={{ color: 'var(--color-danger)' }}>
+        Couldn&apos;t load metrics
+      </p>
+    );
+  }
   if (loading || !data) return <p style={{ color: 'var(--color-text-dim)' }}>Loading...</p>;
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
