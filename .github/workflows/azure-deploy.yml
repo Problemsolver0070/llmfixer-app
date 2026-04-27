@@ -6,6 +6,9 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches: [main]
+  # Manual trigger so secret rotations (e.g., PayPal client id flip from
+  # sandbox to production) can be redeployed without an artificial commit.
+  workflow_dispatch:
 
 jobs:
   build_and_deploy_job:
