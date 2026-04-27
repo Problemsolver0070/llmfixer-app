@@ -10,7 +10,23 @@ export default function Keys() {
   const { keys, loading, create, revoke } = useKeys();
   const [createOpen, setCreateOpen] = useState(false);
   const [revokeTarget, setRevokeTarget] = useState<ApiKey | null>(null);
+  // Full keys are HMAC-hashed server-side at creation and never recoverable.
+  // The prefix is the only identifier available post-creation, so we only let
+  // users copy that. Useful for cross-referencing dashboards, logs, and audit
+  // trails. To get a full key again the user must revoke and create a new one.
+  // Matches OpenAI / Stripe / AWS / GitHub conventions.
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const active = keys.filter((k) => k.status === 'active');
+
+  async function copyPrefix(k: ApiKey) {
+    try {
+      await navigator.clipboard?.writeText(k.key_prefix);
+      setCopiedId(k.id);
+      setTimeout(() => setCopiedId((id) => (id === k.id ? null : id)), 2000);
+    } catch {
+      // silent: clipboard may be denied; the prefix is still visible to copy manually
+    }
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -62,7 +78,25 @@ export default function Keys() {
                 <tr key={k.id}>
                   <td style={cell}>{k.label ?? '(no label)'}</td>
                   <td style={{ ...cell, fontFamily: 'var(--font-mono)', fontSize: 12 }}>
-                    {k.key_prefix}...
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                      <span>{k.key_prefix}...</span>
+                      <button
+                        type="button"
+                        aria-label={`Copy prefix ${k.key_prefix}`}
+                        onClick={() => copyPrefix(k)}
+                        style={{
+                          background: 'transparent',
+                          color: copiedId === k.id ? 'var(--color-success)' : 'var(--color-text-dim)',
+                          border: 0,
+                          fontSize: 12,
+                          fontFamily: 'inherit',
+                          cursor: 'pointer',
+                          padding: 0,
+                        }}
+                      >
+                        {copiedId === k.id ? 'Copied' : 'Copy'}
+                      </button>
+                    </span>
                   </td>
                   <td style={cell}>{formatDateTime(k.created_at)}</td>
                   <td style={cell}>{k.last_used_at ? formatDateTime(k.last_used_at) : 'never'}</td>

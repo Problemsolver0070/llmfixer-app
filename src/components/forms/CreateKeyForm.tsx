@@ -13,6 +13,8 @@ export function CreateKeyForm({ onCreate, onDone }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedKey | null>(null);
+  const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
+  const [copyError, setCopyError] = useState<string | null>(null);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -25,6 +27,20 @@ export function CreateKeyForm({ onCreate, onDone }: Props) {
       setError((e as Error).message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function onCopy(value: string) {
+    setCopyError(null);
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard not available');
+      }
+      await navigator.clipboard.writeText(value);
+      setCopyState('copied');
+      setTimeout(() => setCopyState('idle'), 2000);
+    } catch {
+      setCopyError('Could not copy. Select the key and copy manually.');
     }
   }
 
@@ -43,11 +59,33 @@ export function CreateKeyForm({ onCreate, onDone }: Props) {
             fontSize: 13,
             wordBreak: 'break-all',
             border: '1px solid var(--color-border)',
-            marginBottom: 14,
+            marginBottom: 8,
           }}
         >
           {created.key}
         </code>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          <button
+            type="button"
+            onClick={() => onCopy(created.key)}
+            style={{
+              background: 'transparent',
+              color: copyState === 'copied' ? 'var(--color-success)' : 'var(--color-accent-bright)',
+              border: 0,
+              fontSize: 12,
+              letterSpacing: '0.04em',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            {copyState === 'copied' ? 'Copied' : 'Copy'}
+          </button>
+          {copyError && (
+            <span role="alert" style={{ fontSize: 12, color: 'var(--color-danger)' }}>
+              {copyError}
+            </span>
+          )}
+        </div>
         <p style={{ fontSize: 12, color: 'var(--color-danger)', marginBottom: 18 }}>
           Save it now, you cannot see it again.
         </p>

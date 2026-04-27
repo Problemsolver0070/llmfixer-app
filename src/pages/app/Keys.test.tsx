@@ -49,4 +49,16 @@ describe('Keys page', () => {
     setup({ keys: [] });
     expect(screen.getByText(/no keys yet/i)).toBeInTheDocument();
   });
+
+  it('per-row Copy button copies the prefix string only (no ellipsis)', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });
+    try {
+      setup();
+      await userEvent.click(screen.getByRole('button', { name: /copy prefix opto_aaa/i }));
+      await waitFor(() => expect(writeText).toHaveBeenCalledWith('opto_aaa'));
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
