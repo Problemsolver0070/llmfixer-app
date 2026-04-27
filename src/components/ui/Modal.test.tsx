@@ -27,4 +27,25 @@ describe('Modal', () => {
     await userEvent.keyboard('{Escape}');
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('does not re-bind the Escape listener when only onClose changes', async () => {
+    const addSpy = vi.spyOn(document, 'addEventListener');
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
+    const onCloseA = vi.fn();
+    const onCloseB = vi.fn();
+    const { rerender } = render(<Modal open onClose={onCloseA}><p>x</p></Modal>);
+    const addCallsAfterMount = addSpy.mock.calls.filter((c) => c[0] === 'keydown').length;
+    const removeCallsAfterMount = removeSpy.mock.calls.filter((c) => c[0] === 'keydown').length;
+    rerender(<Modal open onClose={onCloseB}><p>x</p></Modal>);
+    const addCallsAfterRerender = addSpy.mock.calls.filter((c) => c[0] === 'keydown').length;
+    const removeCallsAfterRerender = removeSpy.mock.calls.filter((c) => c[0] === 'keydown').length;
+    expect(addCallsAfterRerender).toBe(addCallsAfterMount);
+    expect(removeCallsAfterRerender).toBe(removeCallsAfterMount);
+    // The latest onClose is invoked when Escape fires.
+    await userEvent.keyboard('{Escape}');
+    expect(onCloseA).not.toHaveBeenCalled();
+    expect(onCloseB).toHaveBeenCalled();
+    addSpy.mockRestore();
+    removeSpy.mockRestore();
+  });
 });
