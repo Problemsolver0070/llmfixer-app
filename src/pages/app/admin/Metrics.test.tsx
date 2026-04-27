@@ -14,6 +14,7 @@ describe('Metrics page', () => {
         mrr_cents: 599700, signups_7d: 12, cancellations_7d: 1,
       },
       loading: false,
+      error: null,
     });
     render(<Metrics />);
     await waitFor(() => expect(screen.getByText('100')).toBeInTheDocument());
@@ -22,5 +23,15 @@ describe('Metrics page', () => {
     expect(screen.getByText(/\$5,997/)).toBeInTheDocument();
     expect(screen.getByText('12')).toBeInTheDocument();
     expect(screen.getByText('1')).toBeInTheDocument();
+  });
+
+  it('shows an error message when the hook reports an error', () => {
+    useAdminMetrics.mockReturnValue({
+      data: null,
+      loading: false,
+      error: new Error('boom'),
+    });
+    render(<Metrics />);
+    expect(screen.getByRole('alert')).toHaveTextContent(/couldn'?t load metrics/i);
   });
 });
