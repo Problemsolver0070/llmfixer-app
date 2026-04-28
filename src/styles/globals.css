@@ -57,3 +57,25 @@ button {
     transition-duration: 0.001ms !important;
   }
 }
+
+.support-chat-sidebar-wrapper {
+  height: 100%;
+}
+@media (max-width: 767px) {
+  .support-chat-sidebar-wrapper {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 5;
+    transform: translateX(-100%);
+    transition: transform 0.18s ease;
+  }
+  .support-chat-sidebar-wrapper[data-open='true'] {
+    transform: translateX(0);
+  }
+}
+@media (min-width: 768px) {
+  .support-chat-drawer-toggle {
+    display: none !important;
+  }
+}
