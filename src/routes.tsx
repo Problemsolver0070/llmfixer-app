@@ -10,6 +10,7 @@ import Reset from '@/pages/public/Reset';
 import VerifyEmail from '@/pages/public/VerifyEmail';
 import Dashboard from '@/pages/app/Dashboard';
 import Setup from '@/pages/app/Setup';
+import { Models } from '@/pages/app/Models';
 import Keys from '@/pages/app/Keys';
 import Billing from '@/pages/app/Billing';
 import Account from '@/pages/app/Account';
@@ -41,6 +42,7 @@ export const routes: RouteObject[] = [
       { index: true, element: <Navigate to="/app/dashboard" replace /> },
       { path: 'dashboard', Component: Dashboard },
       { path: 'setup', Component: Setup },
+      { path: 'models', Component: Models },
       { path: 'keys', Component: Keys },
       { path: 'billing', Component: Billing },
       { path: 'account', Component: Account },

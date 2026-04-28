@@ -33,6 +33,7 @@ describe('AppShell', () => {
     shell();
     expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /setup/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /models/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /keys/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /billing/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /account/i })).toBeInTheDocument();
