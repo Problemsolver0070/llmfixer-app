@@ -40,4 +40,15 @@ describe('Setup page', () => {
     await userEvent.click(screen.getByRole('tab', { name: /anthropic/i }));
     expect(screen.getByText(/anthropic\.com/i)).toBeInTheDocument();
   });
+
+  it('mentions Anthropic via Foundry and links to the full catalog', () => {
+    shell([{ id: 'k1', label: 'prod', key_prefix: 'opto_alpha', status: 'active' }]);
+    expect(
+      screen.getByText(/proxy Anthropic models via Microsoft AI Foundry/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /see full catalog/i })).toHaveAttribute(
+      'href',
+      '/app/models',
+    );
+  });
 });
