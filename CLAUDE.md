@@ -25,6 +25,7 @@ npm run test:watch   # vitest watch mode
 - `src/lib/supabase.ts` is the singleton Supabase JS client; `src/lib/api.ts` is the `fetch` wrapper that attaches the JWT and signs out on 401.
 - Hooks in `src/hooks/*` own server state. Components consume hooks; never call `fetch` from a component.
 - Tests are co-located: `Foo.tsx` / `Foo.test.tsx`. Module-level `vi.mock` stubs `@/lib/supabase`, `@/lib/api`, and `@paypal/react-paypal-js` where they're used.
+- `src/pages/app/Models.tsx` renders the model catalog from `GET /v1/models/catalog` via the `useModels` hook (module-level cache). Two card variants: `ModelCard` for available models (with copy-to-clipboard), `ComingSoonCard` for provider teasers (greyed, no interactive elements).
 
 ## Conventions
 
