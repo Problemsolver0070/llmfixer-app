@@ -102,7 +102,11 @@ export default function Setup() {
       <Card>
         <h2 style={{ fontSize: 14, fontWeight: 400, margin: '0 0 8px' }}>Available models</h2>
         <p style={{ fontSize: 12, color: 'var(--color-text-dim)', margin: 0 }}>
-          Hit <code>GET /v1/models</code> for the live list. We proxy OpenAI, Anthropic, and Gemini.
+          Hit <code>GET /v1/models</code> for the live list. Today we proxy Anthropic models via Microsoft AI Foundry; OpenAI, Google Gemini, and xAI Grok are on the roadmap.{' '}
+          <Link to="/app/models" style={{ color: 'var(--color-accent-bright)' }}>
+            See full catalog
+          </Link>
+          .
         </p>
       </Card>
 
