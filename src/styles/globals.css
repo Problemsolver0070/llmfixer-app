@@ -79,3 +79,31 @@ button {
     display: none !important;
   }
 }
+
+.setup-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  height: calc(100vh - 64px);
+}
+.setup-split-pane {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+.setup-split-pane-right {
+  position: relative;
+}
+@media (max-width: 767px) {
+  .setup-split {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .setup-split-pane-right {
+    min-height: 60vh;
+  }
+}
