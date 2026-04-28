@@ -7,6 +7,7 @@ import { useAccount } from '@/hooks/useAccount';
 const TABS = [
   { to: '/app/dashboard', label: 'Dashboard' },
   { to: '/app/setup', label: 'Setup' },
+  { to: '/app/models', label: 'Models' },
   { to: '/app/keys', label: 'Keys' },
   { to: '/app/billing', label: 'Billing' },
   { to: '/app/account', label: 'Account' },
