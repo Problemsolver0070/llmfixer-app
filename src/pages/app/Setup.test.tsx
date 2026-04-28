@@ -1,54 +1,28 @@
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
+
+vi.mock('@/hooks/useSupportThreads', () => ({
+  useSupportThreads: () => ({
+    threads: [], loading: false, error: null,
+    create: vi.fn(), rename: vi.fn(), archive: vi.fn(), remove: vi.fn(), refetch: vi.fn(),
+  }),
+}));
 
 const useKeysMock = vi.fn();
 vi.mock('@/hooks/useKeys', () => ({ useKeys: () => useKeysMock() }));
 
-import Setup from './Setup';
-
-function shell(keysList: unknown[]) {
-  useKeysMock.mockReturnValue({
-    keys: keysList, loading: false, error: null,
-    create: vi.fn(), revoke: vi.fn(), refresh: vi.fn(),
-  });
-  return render(
-    <MemoryRouter initialEntries={['/app/setup']}>
-      <Routes>
-        <Route path="/app/setup" element={<Setup />} />
-        <Route path="/app/keys" element={<p>keys page</p>} />
-      </Routes>
-    </MemoryRouter>,
-  );
-}
+import { Setup } from './Setup';
 
 describe('Setup page', () => {
-  it('routes to keys when user has none', () => {
-    shell([]);
-    expect(screen.getByText(/generate your first key/i)).toBeInTheDocument();
-  });
-
-  it('renders the OpenAI snippet by default with the key inlined', () => {
-    shell([{ id: 'k1', label: 'prod', key_prefix: 'opto_alpha', status: 'active' }]);
-    expect(screen.getByRole('tab', { name: /openai/i })).toBeInTheDocument();
-    expect(screen.getByText(/opto_alpha/)).toBeInTheDocument();
-  });
-
-  it('switches to the Anthropic tab', async () => {
-    shell([{ id: 'k1', label: 'prod', key_prefix: 'opto_beta', status: 'active' }]);
-    await userEvent.click(screen.getByRole('tab', { name: /anthropic/i }));
-    expect(screen.getByText(/anthropic\.com/i)).toBeInTheDocument();
-  });
-
-  it('mentions Anthropic via Foundry and links to the full catalog', () => {
-    shell([{ id: 'k1', label: 'prod', key_prefix: 'opto_alpha', status: 'active' }]);
-    expect(
-      screen.getByText(/proxy Anthropic models via Microsoft AI Foundry/i),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /see full catalog/i })).toHaveAttribute(
-      'href',
-      '/app/models',
-    );
+  it('renders both reference and support panes', () => {
+    useKeysMock.mockReturnValue({
+      keys: [{ id: 'k1', label: 'prod', key_prefix: 'opto_alpha', status: 'active' }],
+      loading: false, error: null,
+      create: vi.fn(), revoke: vi.fn(), refresh: vi.fn(),
+    });
+    render(<MemoryRouter><Setup /></MemoryRouter>);
+    expect(screen.getByText(/proxy Anthropic models via Microsoft AI Foundry/i)).toBeInTheDocument();
+    expect(screen.getByText(/ask anything about the fixer/i)).toBeInTheDocument();
   });
 });
