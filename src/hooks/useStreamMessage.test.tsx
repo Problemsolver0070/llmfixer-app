@@ -1,6 +1,19 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+// Mock `@/lib/env` first so the transitive `@/lib/supabase` import in
+// useStreamMessage.ts does not blow up when CI runs `npm test` without
+// VITE_SUPABASE_URL et al. (env.ts throws at module load on missing vars
+// by design; only the test mocks bypass it.)
+vi.mock('@/lib/env', () => ({
+  env: {
+    supabaseUrl: 'http://localhost',
+    supabaseAnonKey: 'test',
+    apiBase: 'http://localhost',
+    paypalClientId: 'test',
+    paypalPlanId: 'P-test',
+  },
+}));
 vi.mock('@/lib/api', () => ({ api: vi.fn() }));
 vi.mock('@/lib/supabase', () => ({
   supabase: {
