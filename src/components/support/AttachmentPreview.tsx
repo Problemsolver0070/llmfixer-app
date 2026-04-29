@@ -44,12 +44,14 @@ export function AttachmentPreview({ file, onRemove }: Props) {
         ) : (
           <span className="attachment-chip-typebox">{typeLabel}</span>
         )}
-        <span
-          className="attachment-chip-corner-label"
-          aria-hidden="true"
-        >
-          {typeLabel}
-        </span>
+        {isImage && (
+          <span
+            className="attachment-chip-corner-label"
+            aria-hidden="true"
+          >
+            {typeLabel}
+          </span>
+        )}
       </div>
       <span className="attachment-chip-meta">
         <span className="attachment-chip-name">{file.name}</span>
