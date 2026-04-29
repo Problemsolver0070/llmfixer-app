@@ -3,10 +3,10 @@ import type { ReactNode } from 'react';
 import type { SupportMessage } from '@/hooks/useSupportMessages';
 import { MarkdownMessage } from './MarkdownMessage';
 
-type Streaming = {
+export type Streaming = {
   id: string;
   text: string;
-  status: 'streaming' | 'complete' | 'cancelled' | 'error';
+  status: 'idle' | 'streaming' | 'complete' | 'cancelled' | 'error';
   errorMessage?: string;
   errorType?: string;
 };
@@ -81,7 +81,7 @@ export function MessageList({ messages, streaming, onRetry }: Props) {
           )}
         </Bubble>
       ))}
-      {streaming && (
+      {streaming && streaming.status !== 'idle' && (
         <>
           {streaming.status === 'error' ? (
             <Bubble role="assistant">
