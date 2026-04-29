@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card } from '@/components/ui/Card';
 import { useKeys } from '@/hooks/useKeys';
 import { tabs, snippet, type TabId } from '@/pages/app/setup-snippets';
 
@@ -12,24 +11,28 @@ export function SetupReference() {
 
   if (loading) {
     return (
-      <section style={{ padding: 16, height: '100%', overflowY: 'auto' }}>
-        <p style={{ color: 'var(--color-text-dim)' }}>Loading...</p>
+      <section className="setup-reference setup-reference-loading">
+        <p className="setup-reference-loading-text">{'> LOADING...'}</p>
       </section>
     );
   }
 
   if (active.length === 0) {
     return (
-      <section style={{ padding: 16, height: '100%', overflowY: 'auto' }}>
-        <Card>
-          <h1 style={{ fontSize: 22, fontWeight: 300, margin: 0 }}>Setup</h1>
-          <p style={{ fontSize: 14, color: 'var(--color-text-dim)', margin: '8px 0 14px' }}>
+      <section className="setup-reference">
+        <header className="setup-reference-header">
+          <span className="section-label">
+            <span className="tick">{'>'}</span> SETUP
+          </span>
+          <hr className="rule" />
+          <h1 className="setup-hero">Wire it up.</h1>
+          <p className="setup-reference-empty-copy">
             Generate your first key, then come back here for code snippets.
           </p>
-          <Link to="/app/keys" style={{ color: 'var(--color-accent-bright)' }}>
-            Go to keys
-          </Link>
-        </Card>
+        </header>
+        <Link to="/app/keys" className="setup-reference-empty-cta">
+          <span className="tick">{'>'}</span> GO TO KEYS
+        </Link>
       </section>
     );
   }
@@ -38,95 +41,111 @@ export function SetupReference() {
   const placeholderKey = `${selected.key_prefix}...`;
 
   return (
-    <section style={{ padding: 16, height: '100%', overflowY: 'auto' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <header>
-          <h1 style={{ fontSize: 24, fontWeight: 300, margin: 0 }}>Setup</h1>
-          <p style={{ fontSize: 12, color: 'var(--color-text-dim)', margin: '4px 0 0' }}>
-            Drop one of these into your codebase. Replace the placeholder with the key you saved at creation time.
-          </p>
-        </header>
+    <section className="setup-reference">
+      <header className="setup-reference-header">
+        <span className="section-label">
+          <span className="tick">{'>'}</span> SETUP
+        </span>
+        <hr className="rule" />
+        <h1 className="setup-hero">Wire it up.</h1>
+        <p className="setup-reference-sub">
+          Drop one of these into your codebase. Replace the placeholder with the
+          key you saved at creation time.
+        </p>
+      </header>
 
-        <Card>
-          {active.length > 1 && (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14 }}>
-              <span style={{ fontSize: 11, color: 'var(--color-text-dim)' }}>Use key:</span>
-              <select
-                value={selected.id}
-                onChange={(e) => setKeyId(e.target.value)}
-                style={{
-                  background: 'var(--color-bg-rail)',
-                  color: 'var(--color-text)',
-                  border: '1px solid var(--color-border)',
-                  padding: '4px 8px',
-                  fontSize: 12,
-                }}
-              >
-                {active.map((k) => (
-                  <option key={k.id} value={k.id}>
-                    {k.label ?? k.key_prefix}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+      <div className="setup-reference-section">
+        <span className="section-label">
+          <span className="tick">{'>'}</span> QUICK START
+        </span>
+        <hr className="rule" />
 
-          <div role="tablist" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            {tabs.map((t) => (
+        {active.length > 1 && (
+          <div className="setup-reference-key-picker">
+            <span className="small-caps-mono setup-reference-key-picker-label">
+              Use key
+            </span>
+            <select
+              value={selected.id}
+              onChange={(e) => setKeyId(e.target.value)}
+              className="setup-reference-key-select"
+            >
+              {active.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.label ?? k.key_prefix}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div role="tablist" className="setup-reference-tabs">
+          {tabs.map((t) => {
+            const isActive = tab === t.id;
+            return (
               <button
                 key={t.id}
                 role="tab"
-                aria-selected={tab === t.id}
+                aria-selected={isActive}
                 onClick={() => setTab(t.id)}
-                style={{
-                  background: 'transparent',
-                  color: tab === t.id ? 'var(--color-text)' : 'var(--color-text-dim)',
-                  border: 0,
-                  borderBottom: tab === t.id ? '1px solid var(--color-accent)' : '1px solid transparent',
-                  padding: '6px 4px',
-                  fontSize: 13,
-                  cursor: 'pointer',
-                }}
+                className="setup-reference-tab"
+                data-active={isActive}
               >
-                {t.label}
+                <span className="setup-reference-tab-prefix" aria-hidden="true">
+                  {isActive ? '└─' : '  '}
+                </span>
+                <span>{t.label}</span>
               </button>
-            ))}
-          </div>
+            );
+          })}
+        </div>
 
-          <pre
-            style={{
-              background: 'var(--color-bg-rail)',
-              color: 'var(--color-text)',
-              padding: 16,
-              fontSize: 12,
-              overflowX: 'auto',
-              border: '1px solid var(--color-border)',
-              margin: 0,
-            }}
-          >
+        <figure className="setup-reference-snippet">
+          <figcaption className="setup-reference-snippet-caption">
+            <span className="tick">{'>'}</span> {tabs.find((t) => t.id === tab)?.label.toUpperCase()}
+          </figcaption>
+          <pre className="setup-reference-pre">
             <code>{snippet(tab, placeholderKey)}</code>
           </pre>
-        </Card>
+        </figure>
+      </div>
 
-        <Card>
-          <h2 style={{ fontSize: 14, fontWeight: 400, margin: '0 0 8px' }}>Available models</h2>
-          <p style={{ fontSize: 12, color: 'var(--color-text-dim)', margin: 0 }}>
-            Hit <code>GET /v1/models</code> for the live list. Today we proxy Anthropic models via Microsoft AI Foundry; OpenAI, Google Gemini, and xAI Grok are on the roadmap.{' '}
-            <Link to="/app/models" style={{ color: 'var(--color-accent-bright)' }}>
-              See full catalog
-            </Link>
-            .
-          </p>
-        </Card>
+      <div className="setup-reference-section">
+        <span className="section-label">
+          <span className="tick">{'>'}</span> MODELS
+        </span>
+        <hr className="rule" />
+        <p className="setup-reference-prose">
+          Hit <code className="code-id">GET /v1/models</code> for the live list.
+          Today we proxy Anthropic models via Microsoft AI Foundry; OpenAI,
+          Google Gemini, and xAI Grok are on the roadmap.
+        </p>
+        <Link to="/app/models" className="setup-reference-inline-link">
+          <span className="tick">{'>'}</span> SEE FULL CATALOG
+        </Link>
+      </div>
 
-        <Card>
-          <h2 style={{ fontSize: 14, fontWeight: 400, margin: '0 0 8px' }}>Endpoints</h2>
-          <ul style={{ fontSize: 12, color: 'var(--color-text-dim)', paddingLeft: 16, margin: 0, lineHeight: 1.7 }}>
-            <li><code>POST /v1/chat/completions</code> (OpenAI-compatible)</li>
-            <li><code>POST /v1/messages</code> (Anthropic-compatible)</li>
-            <li><code>GET /v1/models</code></li>
-          </ul>
-        </Card>
+      <div className="setup-reference-section">
+        <span className="section-label">
+          <span className="tick">{'>'}</span> ENDPOINTS
+        </span>
+        <hr className="rule" />
+        <ul className="setup-reference-endpoints">
+          <li>
+            <span className="endpoint-method">POST</span>
+            <code className="code-id">/v1/chat/completions</code>
+            <span className="endpoint-note">(OpenAI-compatible)</span>
+          </li>
+          <li>
+            <span className="endpoint-method">POST</span>
+            <code className="code-id">/v1/messages</code>
+            <span className="endpoint-note">(Anthropic-compatible)</span>
+          </li>
+          <li>
+            <span className="endpoint-method">GET</span>
+            <code className="code-id">/v1/models</code>
+          </li>
+        </ul>
       </div>
     </section>
   );
