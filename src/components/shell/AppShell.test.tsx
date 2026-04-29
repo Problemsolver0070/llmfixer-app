@@ -55,4 +55,30 @@ describe('AppShell', () => {
     shell();
     expect(screen.getByTestId('page-body')).toBeInTheDocument();
   });
+
+  it('defaults the main width variant to narrow', () => {
+    const { container } = shell();
+    const main = container.querySelector('main.app-shell-main');
+    expect(main).toHaveAttribute('data-width', 'narrow');
+  });
+
+  it('honors an explicit width prop on the shell', () => {
+    useAccount.mockReturnValue({
+      data: {
+        user: { id: 'u', email: 'a@b.c', role: 'user', status: 'trial', trial_ends_at: null,
+                paypal_sub_id: null, cancels_at: null, comp_until: null },
+        requests_this_week: 0, active_key_count: 0,
+      },
+      loading: false, error: null, refresh: async () => {},
+    });
+    const { container } = render(
+      <MemoryRouter initialEntries={['/app/setup']}>
+        <Routes>
+          <Route path="/app/*" element={<AppShell width="full"><p>page body</p></AppShell>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    const main = container.querySelector('main.app-shell-main');
+    expect(main).toHaveAttribute('data-width', 'full');
+  });
 });

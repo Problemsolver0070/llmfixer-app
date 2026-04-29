@@ -147,3 +147,59 @@ button {
   50% { opacity: 0; }
   100% { opacity: 1; }
 }
+
+/* App shell layout + width variants. */
+.app-shell {
+  min-height: 100vh;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+}
+.app-shell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-rail);
+}
+.app-shell-nav {
+  display: flex;
+  gap: 24px;
+}
+.app-nav-tab {
+  font-size: 13px;
+  padding: 6px 0;
+  color: var(--color-text-dim);
+  border-bottom: 1px solid transparent;
+}
+.app-nav-tab[data-active-tab='true'] {
+  color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+}
+.app-shell-main {
+  margin: 0 auto;
+  padding: 32px;
+  width: 100%;
+}
+.app-shell-main[data-width='narrow'] {
+  max-width: 1080px;
+}
+.app-shell-main[data-width='wide'] {
+  max-width: 1440px;
+}
+.app-shell-main[data-width='full'] {
+  width: 96vw;
+  max-width: 1760px;
+}
+@media (max-width: 767px) {
+  .app-shell-header {
+    padding: 12px 24px;
+  }
+  .app-shell-main {
+    padding: 24px;
+  }
+  .app-shell-main[data-width='full'] {
+    width: 100%;
+  }
+}
