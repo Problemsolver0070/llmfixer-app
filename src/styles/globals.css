@@ -362,6 +362,84 @@ button {
   color: var(--color-accent-copper);
 }
 
+/* Message list. */
+.message-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 24px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.message-row {
+  display: flex;
+  width: 100%;
+}
+.message-row-user {
+  justify-content: flex-end;
+}
+.message-row-assistant {
+  justify-content: flex-start;
+}
+.message-content {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+.message-content-user {
+  max-width: 70ch;
+  white-space: pre-wrap;
+  border-inline-start: 2px solid var(--color-accent-copper);
+  padding: 4px 0 4px 12px;
+  text-align: start;
+}
+.message-content-assistant {
+  max-width: 70ch;
+  padding: 0 0 0 0;
+}
+.message-tag {
+  display: inline-block;
+  margin-inline-start: 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-accent-copper);
+  vertical-align: 1px;
+}
+.message-error-text {
+  color: var(--color-danger);
+}
+.message-retry {
+  margin-inline-start: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-copper-bright);
+}
+.message-retry:hover {
+  color: var(--color-accent-copper);
+}
+.message-retry .tick {
+  margin-inline-end: 4px;
+}
+.message-streaming-text {
+  white-space: pre-wrap;
+}
+.message-cursor {
+  display: inline-block;
+  width: 9px;
+  margin-inline-start: 1px;
+  color: var(--color-accent-copper);
+  animation: support-cursor 1s steps(2) infinite;
+}
+
 /* Setup page: 35/65 reference + chat layout. */
 .setup-grid {
   display: grid;
