@@ -72,6 +72,18 @@ button {
   }
 }
 
+/* Keyboard focus visibility. Zero-specificity selector via :where() so any
+   component-level focus styling continues to win without !important. The
+   companion :focus:not(:focus-visible) rule suppresses stray mouse-focus
+   rings on the same elements without hiding the keyboard ring. */
+:where(button, [role="tab"], [role="menuitem"], a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-accent-copper);
+  outline-offset: 2px;
+}
+:where(button, [role="tab"], [role="menuitem"], a, input, select, textarea):focus:not(:focus-visible) {
+  outline: 0;
+}
+
 /* Terminal-editorial utility classes. */
 .section-label {
   display: inline-flex;
@@ -490,7 +502,6 @@ button {
   font-size: 13.5px;
   font-family: var(--font-mono);
   line-height: 1.55;
-  outline: none;
   box-shadow: none;
   transition: border-color 0.12s ease;
 }
@@ -746,7 +757,6 @@ button {
   border: 0;
   border-bottom: 1px solid var(--rule-medium);
   padding: 4px 6px;
-  outline: none;
 }
 .setup-reference-key-select:focus {
   border-bottom-color: var(--color-accent-copper);
