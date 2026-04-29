@@ -6,15 +6,18 @@ import { SupportChat } from '@/components/support/SupportChat';
 const MOBILE_QUERY = '(max-width: 1023px)';
 
 function useIsMobile(): boolean {
-  // Default to false so SSR / first render assumes desktop. The effect flips
-  // to mobile on the next paint when the viewport is narrow. The key effect
-  // is that on desktop the reference is always visible without a click.
-  const [mobile, setMobile] = useState(false);
+  // Synchronous initial state avoids a desktop-layout flash on the first
+  // paint when the viewport is actually narrow. SSR / non-browser hosts
+  // fall back to false (desktop), which matches the previous behavior.
+  const [mobile, setMobile] = useState<boolean>(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return false;
+    }
+    return window.matchMedia(MOBILE_QUERY).matches;
+  });
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
     const mq = window.matchMedia(MOBILE_QUERY);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- single sync to viewport state on mount; subsequent updates flow through the listener
-    setMobile(mq.matches);
     const onChange = (e: MediaQueryListEvent) => setMobile(e.matches);
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
