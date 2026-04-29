@@ -45,6 +45,10 @@ describe('Setup page', () => {
     });
     render(<MemoryRouter><Setup /></MemoryRouter>);
     expect(screen.getByText(/proxy Anthropic models via Microsoft AI Foundry/i)).toBeInTheDocument();
-    expect(screen.getByText(/ask anything about the fixer/i)).toBeInTheDocument();
+    // Empty-state hero is "Ask anything." with a mono subtitle. Both surfaces
+    // appear when there are no threads in the mock.
+    expect(
+      screen.getByRole('heading', { name: /ask anything\.?/i, level: 2 }),
+    ).toBeInTheDocument();
   });
 });

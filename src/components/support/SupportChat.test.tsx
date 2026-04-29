@@ -41,7 +41,12 @@ describe('SupportChat', () => {
       refetch: vi.fn(),
     });
     render(<SupportChat />);
-    expect(screen.getByText(/ask anything about the fixer/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /ask anything\.?/i, level: 2 }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/install, billing, account, errors/i),
+    ).toBeInTheDocument();
   });
 
   it('renders the sidebar with threads when available', () => {
@@ -103,7 +108,7 @@ describe('SupportChat', () => {
     });
     render(<SupportChat />);
     expect(
-      screen.getByPlaceholderText(/ask anything about the fixer/i),
+      screen.getByPlaceholderText(/ask anything\.?/i),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /send/i })).toBeInTheDocument();
   });
