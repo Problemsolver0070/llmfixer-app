@@ -32,7 +32,6 @@ export function Input({ label, hint, error, id, ...rest }: Props) {
           padding: '10px 12px',
           fontSize: 13,
           color: 'var(--color-text)',
-          outline: 'none',
         }}
         {...rest}
       />
