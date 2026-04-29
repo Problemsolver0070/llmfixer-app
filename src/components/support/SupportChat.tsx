@@ -34,7 +34,7 @@ export function SupportChat() {
 
   if (threadsError) {
     return (
-      <div style={{ padding: 16, color: 'var(--color-text-dim)' }}>
+      <div className="support-chat-error">
         Couldn't load conversations. Please refresh.
       </div>
     );
@@ -71,27 +71,14 @@ export function SupportChat() {
   const showEmptyHero = empty && messages.length === 0 && !stream.streamingMessage;
 
   return (
-    <div style={{ display: 'flex', height: '100%', position: 'relative' }}>
+    <div className="support-chat">
       <button
         type="button"
         onClick={() => setDrawerOpen((o) => !o)}
         aria-label="Toggle threads sidebar"
         className="support-chat-drawer-toggle"
-        style={{
-          position: 'absolute',
-          top: 8,
-          left: 8,
-          background: 'var(--color-bg-rail)',
-          border: '1px solid var(--color-border)',
-          borderRadius: 4,
-          padding: '4px 8px',
-          fontSize: 14,
-          cursor: 'pointer',
-          color: 'var(--color-text)',
-          zIndex: 4,
-        }}
       >
-        ☰
+        [ THREADS ]
       </button>
       <div
         className="support-chat-sidebar-wrapper"
@@ -123,32 +110,14 @@ export function SupportChat() {
           }}
         />
       </div>
-      <main
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          minWidth: 0,
-        }}
-      >
+      <main className="support-chat-main">
         {showEmptyHero ? (
-          <div
-            style={{
-              padding: 24,
-              color: 'var(--color-text-dim)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flex: 1,
-              textAlign: 'center',
-            }}
-          >
-            <div>
-              <h2 style={{ fontSize: 16, marginBottom: 8 }}>
-                Ask anything about The Fixer
-              </h2>
-              <p style={{ fontSize: 13 }}>
-                Install, billing, account, errors. Drop in a screenshot or log if it helps.
+          <div className="support-chat-empty">
+            <div className="support-chat-empty-inner">
+              <h2 className="support-chat-empty-hero">Ask anything.</h2>
+              <p className="support-chat-empty-sub">
+                Install, billing, account, errors. Drop in a screenshot or log
+                if it helps.
               </p>
             </div>
           </div>

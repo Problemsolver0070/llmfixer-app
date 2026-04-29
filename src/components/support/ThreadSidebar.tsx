@@ -16,38 +16,23 @@ export function ThreadSidebar(props: Props) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   return (
-    <aside
-      style={{
-        width: 220,
-        borderRight: '1px solid var(--color-border)',
-        background: 'var(--color-bg-rail)',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-      }}
-    >
-      <div style={{ padding: 12, borderBottom: '1px solid var(--color-border)' }}>
+    <aside className="thread-sidebar">
+      <div className="thread-sidebar-header">
         <button
           type="button"
           onClick={props.onCreate}
-          style={{
-            width: '100%',
-            padding: '8px 12px',
-            background: 'var(--color-accent, #2b6fb4)',
-            color: 'var(--color-bg)',
-            border: 'none',
-            borderRadius: 6,
-            cursor: 'pointer',
-            fontSize: 13,
-          }}
+          className="thread-sidebar-new"
         >
-          + New chat
+          <span className="tick" aria-hidden="true">{'>'}</span>
+          <span>NEW CHAT</span>
         </button>
       </div>
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, flex: 1, overflowY: 'auto' }}>
-        {props.loading && <li style={{ padding: 12, fontSize: 12, color: 'var(--color-text-dim)' }}>Loading...</li>}
+      <ul className="thread-sidebar-list">
+        {props.loading && (
+          <li className="thread-sidebar-empty">{'> LOADING...'}</li>
+        )}
         {!props.loading && props.threads.length === 0 && (
-          <li style={{ padding: 12, fontSize: 12, color: 'var(--color-text-dim)' }}>No conversations yet.</li>
+          <li className="thread-sidebar-empty">No conversations yet.</li>
         )}
         {props.threads.map((t) => {
           const active = t.id === props.activeId;
@@ -56,77 +41,86 @@ export function ThreadSidebar(props: Props) {
             <li
               key={t.id}
               data-active={active}
-              style={{
-                position: 'relative',
-                padding: '8px 12px',
-                background: active ? 'var(--color-bg-elev, #2a2f43)' : 'transparent',
-                cursor: 'pointer',
-                fontSize: 13,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 6,
-              }}
+              className="thread-sidebar-row"
               onClick={() => props.onSelect(t.id)}
               title={t.title}
             >
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
+              <span
+                className="thread-sidebar-row-tick"
+                aria-hidden="true"
+                data-active={active}
+              >
+                {active ? '>' : ' '}
+              </span>
+              <span className="thread-sidebar-row-title">{t.title}</span>
               <button
                 type="button"
                 aria-label={`Thread actions for ${t.title}`}
-                onClick={(e) => { e.stopPropagation(); setOpenMenu(isMenuOpen ? null : t.id); }}
-                style={{ background: 'transparent', border: 'none', color: 'var(--color-text-dim)', cursor: 'pointer', fontSize: 14 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenMenu(isMenuOpen ? null : t.id);
+                }}
+                className="thread-sidebar-row-menu-trigger"
               >
-                ⋮
+                ...
               </button>
               {isMenuOpen && (
                 <div
                   role="menu"
-                  style={{
-                    position: 'absolute',
-                    right: 4,
-                    top: '100%',
-                    background: 'var(--color-bg-elev, #2a2f43)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 4,
-                    padding: 4,
-                    zIndex: 5,
-                    minWidth: 120,
-                  }}
+                  className="thread-sidebar-menu"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
                     type="button"
                     role="menuitem"
+                    className="thread-sidebar-menu-item"
                     onClick={() => {
-                      const newTitle = window.prompt('Rename conversation', t.title);
+                      const newTitle = window.prompt(
+                        'Rename conversation',
+                        t.title,
+                      );
                       if (newTitle) props.onRename(t.id, newTitle);
                       setOpenMenu(null);
                     }}
-                    style={{ width: '100%', textAlign: 'left', padding: '6px 8px', fontSize: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}
                   >
-                    Rename
+                    <span className="thread-sidebar-menu-prefix" aria-hidden="true">
+                      {'└─'}
+                    </span>
+                    <span>Rename</span>
                   </button>
                   <button
                     type="button"
                     role="menuitem"
-                    onClick={() => { props.onArchive(t.id); setOpenMenu(null); }}
-                    style={{ width: '100%', textAlign: 'left', padding: '6px 8px', fontSize: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text)' }}
-                  >
-                    Archive
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
+                    className="thread-sidebar-menu-item"
                     onClick={() => {
-                      if (window.confirm(`Delete "${t.title}"? This cannot be undone.`)) {
+                      props.onArchive(t.id);
+                      setOpenMenu(null);
+                    }}
+                  >
+                    <span className="thread-sidebar-menu-prefix" aria-hidden="true">
+                      {'└─'}
+                    </span>
+                    <span>Archive</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="thread-sidebar-menu-item thread-sidebar-menu-item-danger"
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          `Delete "${t.title}"? This cannot be undone.`,
+                        )
+                      ) {
                         props.onDelete(t.id);
                       }
                       setOpenMenu(null);
                     }}
-                    style={{ width: '100%', textAlign: 'left', padding: '6px 8px', fontSize: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-danger, #c4564b)' }}
                   >
-                    Delete
+                    <span className="thread-sidebar-menu-prefix" aria-hidden="true">
+                      {'└─'}
+                    </span>
+                    <span>Delete</span>
                   </button>
                 </div>
               )}
