@@ -48,7 +48,8 @@ describe('MessageList', () => {
         streaming={{ id: 'a1', text: 'partial', status: 'cancelled' }}
       />,
     );
-    expect(screen.getByText(/stopped/i)).toBeInTheDocument();
+    // Tag rendered as uppercase mono '(STOPPED)' per the redesign.
+    expect(screen.getByText(/\(STOPPED\)/)).toBeInTheDocument();
   });
 
   it('shows error retry when status is error', () => {
