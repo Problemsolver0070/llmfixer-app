@@ -26,6 +26,7 @@ npm run test:watch   # vitest watch mode
 - Hooks in `src/hooks/*` own server state. Components consume hooks; never call `fetch` from a component.
 - Tests are co-located: `Foo.tsx` / `Foo.test.tsx`. Module-level `vi.mock` stubs `@/lib/supabase`, `@/lib/api`, and `@paypal/react-paypal-js` where they're used.
 - `src/pages/app/Models.tsx` renders the model catalog from `GET /v1/models/catalog` via the `useModels` hook (module-level cache). Two card variants: `ModelCard` for available models (with copy-to-clipboard), `ComingSoonCard` for provider teasers (greyed, no interactive elements).
+- `src/pages/app/Setup.tsx` is a 50/50 split: `components/setup/SetupReference.tsx` on the left (existing reference content), `components/support/SupportChat.tsx` on the right. The chat uses `useSupportThreads`, `useSupportMessages`, `useStreamMessage`, and `useUploadAttachment` to render multi-thread streaming conversations against `GET/POST /v1/support/*`. Markdown rendered via `react-markdown` + `remark-gfm` + `rehype-highlight`. SSE consumed via `fetch` + `ReadableStream` (not `EventSource`, because we need the JWT in the Authorization header). Cancel-mid-stream uses the `assistant_message_id` from the SSE `started` event.
 
 ## Conventions
 
