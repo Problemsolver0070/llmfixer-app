@@ -614,7 +614,7 @@ button {
   grid-template-columns: 35fr 65fr;
   gap: 0;
   min-height: calc(100vh - 132px);
-  margin: -32px;
+  margin: calc(var(--app-shell-pad, 32px) * -1);
 }
 .setup-grid-reference {
   min-width: 0;
@@ -656,7 +656,6 @@ button {
 @media (max-width: 1023px) {
   .setup-grid {
     grid-template-columns: 1fr;
-    margin: -24px;
     min-height: auto;
   }
   .setup-grid-reference {
@@ -968,8 +967,9 @@ button {
   border-bottom-color: var(--color-accent-copper);
 }
 .app-shell-main {
+  --app-shell-pad: 32px;
   margin: 0 auto;
-  padding: 32px;
+  padding: var(--app-shell-pad);
   width: 100%;
 }
 .app-shell-main[data-width='narrow'] {
@@ -987,7 +987,7 @@ button {
     padding: 12px 24px;
   }
   .app-shell-main {
-    padding: 24px;
+    --app-shell-pad: 24px;
   }
   .app-shell-main[data-width='full'] {
     width: 100%;
