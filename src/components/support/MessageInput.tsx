@@ -63,17 +63,10 @@ export function MessageInput(props: Props) {
         e.preventDefault();
         handlePickedFiles(e.dataTransfer.files);
       }}
-      style={{
-        borderTop: '1px solid var(--color-border)',
-        padding: 10,
-        background: 'var(--color-bg-rail)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-      }}
+      className="message-input"
     >
       {props.attachments.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <div className="message-input-attachments">
           {props.attachments.map((f) => (
             <AttachmentPreview
               key={`${f.name}-${f.lastModified}`}
@@ -83,22 +76,14 @@ export function MessageInput(props: Props) {
           ))}
         </div>
       )}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+      <div className="message-input-row">
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           aria-label="Attach files"
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 4,
-            padding: '6px 10px',
-            cursor: 'pointer',
-            color: 'var(--color-text)',
-            fontSize: 13,
-          }}
+          className="message-input-attach"
         >
-          Attach
+          [ + ATTACH ]
         </button>
         <input
           ref={fileInputRef}
@@ -106,7 +91,7 @@ export function MessageInput(props: Props) {
           multiple
           accept="image/png,image/jpeg,image/gif,image/webp,application/pdf,text/plain,text/markdown"
           onChange={(e) => handlePickedFiles(e.target.files)}
-          style={{ display: 'none' }}
+          className="message-input-file"
         />
         <textarea
           value={text}
@@ -119,53 +104,24 @@ export function MessageInput(props: Props) {
           }}
           placeholder="Ask anything about The Fixer"
           rows={1}
-          style={{
-            flex: 1,
-            minHeight: 36,
-            maxHeight: 200,
-            resize: 'vertical',
-            padding: '8px 10px',
-            background: 'var(--color-bg)',
-            color: 'var(--color-text)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 6,
-            fontSize: 13,
-            fontFamily: 'inherit',
-          }}
+          className="message-input-textarea"
         />
         {props.streaming ? (
           <button
             type="button"
             onClick={props.onStop}
-            style={{
-              padding: '8px 14px',
-              background: 'var(--color-danger)',
-              color: 'var(--color-bg)',
-              border: 'none',
-              borderRadius: 6,
-              cursor: 'pointer',
-              fontSize: 13,
-            }}
+            className="message-input-button message-input-button-stop"
           >
-            Stop
+            [ STOP ]
           </button>
         ) : (
           <button
             type="button"
             onClick={commitSend}
             disabled={sendDisabled}
-            style={{
-              padding: '8px 14px',
-              background: 'var(--color-accent)',
-              color: 'var(--color-bg)',
-              border: 'none',
-              borderRadius: 6,
-              cursor: sendDisabled ? 'not-allowed' : 'pointer',
-              fontSize: 13,
-              opacity: sendDisabled ? 0.5 : 1,
-            }}
+            className="message-input-button message-input-button-send"
           >
-            Send
+            [ SEND ]
           </button>
         )}
       </div>

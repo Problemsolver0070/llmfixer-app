@@ -33,54 +33,27 @@ export function AttachmentPreview({ file, onRemove }: Props) {
             : 'FILE';
 
   return (
-    <div
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: 6,
-        background: 'var(--color-bg-rail)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 6,
-        fontSize: 12,
-      }}
-    >
-      {isImage && url ? (
-        <img
-          src={url}
-          alt={file.name}
-          style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4 }}
-        />
-      ) : (
+    <div className="attachment-chip">
+      <div className="attachment-chip-thumb">
+        {isImage && url ? (
+          <img
+            src={url}
+            alt={file.name}
+            className="attachment-chip-img"
+          />
+        ) : (
+          <span className="attachment-chip-typebox">{typeLabel}</span>
+        )}
         <span
-          style={{
-            width: 32,
-            height: 32,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'var(--color-bg)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 4,
-            fontSize: 10,
-            color: 'var(--color-text-dim)',
-          }}
+          className="attachment-chip-corner-label"
+          aria-hidden="true"
         >
           {typeLabel}
         </span>
-      )}
-      <span style={{ display: 'flex', flexDirection: 'column' }}>
-        <span
-          style={{
-            maxWidth: 160,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {file.name}
-        </span>
-        <span style={{ color: 'var(--color-text-dim)', fontSize: 10 }}>
+      </div>
+      <span className="attachment-chip-meta">
+        <span className="attachment-chip-name">{file.name}</span>
+        <span className="attachment-chip-detail">
           {typeLabel}, {sizeKb} KB
         </span>
       </span>
@@ -88,13 +61,7 @@ export function AttachmentPreview({ file, onRemove }: Props) {
         type="button"
         onClick={onRemove}
         aria-label={`Remove ${file.name}`}
-        style={{
-          background: 'transparent',
-          border: 'none',
-          color: 'var(--color-text-dim)',
-          cursor: 'pointer',
-          fontSize: 14,
-        }}
+        className="attachment-chip-remove"
       >
         ×
       </button>
