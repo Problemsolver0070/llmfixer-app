@@ -10,7 +10,6 @@ describe('env', () => {
     vi.stubEnv('VITE_SUPABASE_URL', '');
     vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon');
     vi.stubEnv('VITE_PAYPAL_CLIENT_ID', 'cli');
-    vi.stubEnv('VITE_PAYPAL_PLAN_ID', 'plan');
     await expect(import('./env')).rejects.toThrow(/VITE_SUPABASE_URL/);
   });
 
@@ -18,7 +17,6 @@ describe('env', () => {
     vi.stubEnv('VITE_SUPABASE_URL', 'https://x.supabase.co');
     vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon');
     vi.stubEnv('VITE_PAYPAL_CLIENT_ID', 'cli');
-    vi.stubEnv('VITE_PAYPAL_PLAN_ID', 'plan');
     vi.stubEnv('VITE_API_BASE', '');
     const mod = await import('./env');
     expect(mod.env.apiBase).toBe('https://api.thefixer.in');

@@ -13,7 +13,6 @@ vi.mock('@/lib/env', () => ({
     supabaseAnonKey: 'test',
     apiBase: 'http://localhost',
     paypalClientId: 'test',
-    paypalPlanId: 'P-test',
   },
 }));
 vi.mock('@/lib/supabase', () => ({

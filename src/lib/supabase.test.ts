@@ -6,7 +6,6 @@ vi.mock('./env', () => ({
     supabaseAnonKey: 'anon-key',
     apiBase: 'https://api.thefixer.in',
     paypalClientId: 'cli',
-    paypalPlanId: 'plan',
   },
 }));
 
