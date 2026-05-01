@@ -13,7 +13,7 @@ export function ChatNavLink() {
       data-active-tab="false"
       data-chat-nav-link="true"
     >
-      Chat
+      The Fixer ai
     </a>
   );
 }

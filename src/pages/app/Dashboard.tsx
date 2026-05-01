@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
+import { TheFixerAiCard } from '@/components/dashboard/TheFixerAiCard';
 import { useAccount } from '@/hooks/useAccount';
 import { formatDateTime, hoursUntil } from '@/lib/format';
 
@@ -24,6 +25,7 @@ export default function Dashboard() {
           <Link to="/pricing" className="trial-banner-cta">See plans →</Link>
         </div>
       ) : null}
+      <TheFixerAiCard />
       <Card>
         <AccountStateCard user={u} />
       </Card>

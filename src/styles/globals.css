@@ -1212,6 +1212,64 @@ button {
 }
 .trial-banner-cta:hover { border-bottom-color: var(--color-accent-copper); }
 
+/* Dashboard hero CTA pointing paid users at chat.thefixer.in. Visually
+   prominent copper-accent card matching the terminal-editorial direction:
+   Fraunces italic title, mono eyebrow + CTA, copper accent on hover. */
+.fixer-ai-card {
+  display: block;
+  padding: 24px 26px;
+  border: 1px solid var(--color-accent-copper);
+  background: linear-gradient(
+    135deg,
+    rgba(201, 123, 58, 0.10),
+    rgba(201, 123, 58, 0.02)
+  );
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background 160ms ease, border-color 160ms ease;
+  margin-bottom: 4px;
+}
+.fixer-ai-card:hover,
+.fixer-ai-card:focus-visible {
+  background: linear-gradient(
+    135deg,
+    rgba(201, 123, 58, 0.18),
+    rgba(201, 123, 58, 0.06)
+  );
+  border-color: var(--color-accent-copper-bright);
+}
+.fixer-ai-card-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent-copper);
+  margin-bottom: 8px;
+}
+.fixer-ai-card-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.05;
+  margin-bottom: 8px;
+  color: var(--color-text);
+}
+.fixer-ai-card-subtitle {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-dim);
+  margin-bottom: 14px;
+}
+.fixer-ai-card-cta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent-copper-bright);
+}
+
 /* Workspace accept-invite page (Plan A.2.b, Task 15). Terminal-editorial:
    Fraunces italic title, mono everywhere else, copper rule on info blocks,
    warm tint on warn blocks, no shadows or border-radius. */
