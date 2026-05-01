@@ -37,4 +37,4 @@ npm run test:watch   # vitest watch mode
 
 ## Required env (see `.env.example`)
 
-`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_PAYPAL_CLIENT_ID`, `VITE_PAYPAL_PLAN_ID`, `VITE_API_BASE` (defaults to `https://api.thefixer.in`).
+`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_PAYPAL_CLIENT_ID`, `VITE_API_BASE` (defaults to `https://api.thefixer.in`). PayPal Plan IDs come from `GET /v1/billing/plans` at runtime, not a build-time env var.

@@ -24,7 +24,7 @@ describe('useSubscription', () => {
     const { result } = renderHook(() => useSubscription());
     await act(async () => { await result.current.activate('I-99'); });
     expect(apiCall).toHaveBeenCalledWith('/v1/billing/subscriptions/activate', {
-      method: 'POST', body: { paypal_sub_id: 'I-99' },
+      method: 'POST', body: { paypal_sub_id: 'I-99', plan_id: 'solo-weekly', seat_count: 1 },
     });
     expect(refreshAccount).toHaveBeenCalled();
   });
@@ -51,5 +51,18 @@ describe('useSubscription', () => {
     const { result } = renderHook(() => useSubscription());
     await waitFor(() => expect(result.current.subscription).not.toBeNull());
     expect(result.current.subscription?.plan_id).toBe('P-1');
+  });
+
+  it('changePlan POSTs /v1/billing/subscriptions/change-plan with plan_id and seat_count', async () => {
+    apiCall.mockResolvedValueOnce({}); // mock for change-plan
+    apiCall.mockResolvedValueOnce({}); // mock for refresh side-effect
+    const { result } = renderHook(() => useSubscription());
+    await act(async () => {
+      await result.current.changePlan('workspace-monthly', 4);
+    });
+    expect(apiCall).toHaveBeenCalledWith('/v1/billing/subscriptions/change-plan', {
+      method: 'POST',
+      body: { plan_id: 'workspace-monthly', seat_count: 4 },
+    });
   });
 });

@@ -12,6 +12,7 @@ type Options = {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: Body;
   signal?: AbortSignal;
+  auth?: boolean;
 };
 
 let unauthorizedHandler: (() => void) | null = null;
@@ -20,12 +21,15 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
 }
 
 export async function api<T = unknown>(path: string, opts: Options = {}): Promise<T> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  const useAuth = opts.auth !== false;
   const headers: Record<string, string> = {
     Accept: 'application/json',
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (useAuth) {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
   if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
 
   const res = await fetch(`${env.apiBase}${path}`, {
@@ -35,7 +39,7 @@ export async function api<T = unknown>(path: string, opts: Options = {}): Promis
     signal: opts.signal,
   });
 
-  if (res.status === 401) {
+  if (res.status === 401 && useAuth) {
     await supabase.auth.signOut();
     unauthorizedHandler?.();
     throw new ApiError(401, null, 'Session expired');

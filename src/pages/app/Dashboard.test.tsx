@@ -26,7 +26,7 @@ function setup(overrides: Partial<Record<string, unknown>>) {
 describe('Dashboard', () => {
   it('shows trial card with hours remaining', () => {
     setup({ status: 'trial' });
-    expect(screen.getByText(/trial/i)).toBeInTheDocument();
+    expect(screen.getByText(/trial active/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /subscribe/i })).toBeInTheDocument();
   });
 
@@ -43,5 +43,16 @@ describe('Dashboard', () => {
   it('renders this-week request count', () => {
     setup({ status: 'active' });
     expect(screen.getByText('42')).toBeInTheDocument();
+  });
+
+  it('shows the trial banner with subscribe CTA when user is on trial without a subscription', () => {
+    setup({ status: 'trial', paypal_sub_id: null });
+    const cta = screen.getByRole('link', { name: /see plans/i });
+    expect(cta).toHaveAttribute('href', '/pricing');
+  });
+
+  it('does not show the trial banner once the user has a subscription', () => {
+    setup({ status: 'active', paypal_sub_id: 'SUB-1' });
+    expect(screen.queryByRole('link', { name: /see plans/i })).not.toBeInTheDocument();
   });
 });

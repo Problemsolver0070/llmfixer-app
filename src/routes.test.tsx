@@ -20,7 +20,7 @@ vi.mock('@/hooks/useSubscription', () => ({
 }));
 vi.mock('@/lib/paypal', () => ({ AppPayPalProvider: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock('@paypal/react-paypal-js', () => ({ PayPalButtons: () => null }));
-vi.mock('@/lib/env', () => ({ env: { paypalPlanId: 'P-test', paypalClientId: 'test', supabaseUrl: 'http://localhost', supabaseAnonKey: 'test', apiBase: 'http://localhost' } }));
+vi.mock('@/lib/env', () => ({ env: { paypalClientId: 'test', supabaseUrl: 'http://localhost', supabaseAnonKey: 'test', apiBase: 'http://localhost' } }));
 
 import { routes } from './routes';
 
