@@ -6,13 +6,16 @@ import { supabase } from '@/lib/supabase';
 
 const dashboardRedirect = () => `${window.location.origin}/app/dashboard`;
 
+const inviteAcceptRedirect = (token: string) =>
+  `${window.location.origin}/app/workspace/accept?token=${encodeURIComponent(token)}`;
+
 function isUnverified(err: { code?: string; message?: string } | null): boolean {
   if (!err) return false;
   if (err.code === 'email_not_confirmed') return true;
   return /not confirmed/i.test(err.message ?? '');
 }
 
-export function SignInForm() {
+export function SignInForm({ inviteToken }: { inviteToken?: string | null } = {}) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,6 +25,13 @@ export function SignInForm() {
   const [resending, setResending] = useState(false);
   const [resendSent, setResendSent] = useState(false);
   const [resendError, setResendError] = useState<string | null>(null);
+
+  const resendEmailRedirectTo = inviteToken
+    ? inviteAcceptRedirect(inviteToken)
+    : dashboardRedirect();
+  const successPath = inviteToken
+    ? `/app/workspace/accept?token=${encodeURIComponent(inviteToken)}`
+    : '/app/dashboard';
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -40,7 +50,7 @@ export function SignInForm() {
       setError('Wrong email or password.');
       return;
     }
-    navigate('/app/dashboard');
+    navigate(successPath);
   }
 
   async function onResend() {
@@ -50,7 +60,7 @@ export function SignInForm() {
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email,
-      options: { emailRedirectTo: dashboardRedirect() },
+      options: { emailRedirectTo: resendEmailRedirectTo },
     });
     setResending(false);
     if (error) {
