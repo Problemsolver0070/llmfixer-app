@@ -14,6 +14,7 @@ export interface AccountData {
     comp_until: string | null;
     plan_id: string | null;
     seat_count: number;
+    workspace_admin_id: string | null;
   };
   requests_this_week: number;
   active_key_count: number;

@@ -10,11 +10,20 @@ vi.mock('@/lib/supabase', () => ({
 
 import { AppShell } from './AppShell';
 
-function shell(role: 'user' | 'admin' = 'user', path = '/app/dashboard') {
+type ShellOpts = {
+  role?: 'user' | 'admin';
+  path?: string;
+  plan_id?: string | null;
+  workspace_admin_id?: string | null;
+};
+
+function shell(opts: ShellOpts = {}) {
+  const { role = 'user', path = '/app/dashboard', plan_id = null, workspace_admin_id = null } = opts;
   useAccount.mockReturnValue({
     data: {
       user: { id: 'u', email: 'a@b.c', role, status: 'trial', trial_ends_at: null,
-              paypal_sub_id: null, cancels_at: null, comp_until: null },
+              paypal_sub_id: null, cancels_at: null, comp_until: null,
+              plan_id, seat_count: 1, workspace_admin_id },
       requests_this_week: 0, active_key_count: 0,
     },
     loading: false, error: null, refresh: async () => {},
@@ -38,15 +47,16 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: /billing/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /account/i })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /admin/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /workspace/i })).not.toBeInTheDocument();
   });
 
   it('shows the Admin tab when role is admin', () => {
-    shell('admin');
+    shell({ role: 'admin' });
     expect(screen.getByRole('link', { name: /admin/i })).toBeInTheDocument();
   });
 
   it('marks the current tab with data-active', () => {
-    shell('user', '/app/keys');
+    shell({ path: '/app/keys' });
     expect(screen.getByRole('link', { name: /keys/i })).toHaveAttribute('data-active', 'true');
     expect(screen.getByRole('link', { name: /dashboard/i })).toHaveAttribute('data-active', 'false');
   });
@@ -66,7 +76,8 @@ describe('AppShell', () => {
     useAccount.mockReturnValue({
       data: {
         user: { id: 'u', email: 'a@b.c', role: 'user', status: 'trial', trial_ends_at: null,
-                paypal_sub_id: null, cancels_at: null, comp_until: null },
+                paypal_sub_id: null, cancels_at: null, comp_until: null,
+                plan_id: null, seat_count: 1, workspace_admin_id: null },
         requests_this_week: 0, active_key_count: 0,
       },
       loading: false, error: null, refresh: async () => {},
@@ -80,5 +91,36 @@ describe('AppShell', () => {
     );
     const main = container.querySelector('main.app-shell-main');
     expect(main).toHaveAttribute('data-width', 'full');
+  });
+
+  it('shows the Workspace tab for a workspace admin (plan starts with workspace-)', () => {
+    shell({ plan_id: 'workspace-monthly', workspace_admin_id: null });
+    expect(screen.getByRole('link', { name: /workspace/i })).toBeInTheDocument();
+  });
+
+  it('shows the Workspace tab for a workspace member (workspace_admin_id set)', () => {
+    shell({ plan_id: null, workspace_admin_id: 'admin-uuid' });
+    expect(screen.getByRole('link', { name: /workspace/i })).toBeInTheDocument();
+  });
+
+  it('hides the Workspace tab for a Solo subscriber', () => {
+    shell({ plan_id: 'solo-monthly', workspace_admin_id: null });
+    expect(screen.queryByRole('link', { name: /workspace/i })).not.toBeInTheDocument();
+  });
+
+  it('hides the Workspace tab for a free-trial user (no plan_id, no workspace)', () => {
+    shell({ plan_id: null, workspace_admin_id: null });
+    expect(screen.queryByRole('link', { name: /workspace/i })).not.toBeInTheDocument();
+  });
+
+  it('places the Workspace tab between Keys and Billing', () => {
+    shell({ plan_id: 'workspace-quarterly', workspace_admin_id: null });
+    const links = screen.getAllByRole('link').map((a) => a.textContent);
+    const keysIdx = links.indexOf('Keys');
+    const workspaceIdx = links.indexOf('Workspace');
+    const billingIdx = links.indexOf('Billing');
+    expect(keysIdx).toBeGreaterThanOrEqual(0);
+    expect(workspaceIdx).toBe(keysIdx + 1);
+    expect(billingIdx).toBe(workspaceIdx + 1);
   });
 });

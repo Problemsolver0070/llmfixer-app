@@ -15,6 +15,18 @@ vi.mock('@/hooks/useSession', () => ({
 vi.mock('@/hooks/useAccount', () => ({
   useAccount: () => ({ data: null, loading: false, error: null, refresh: async () => {} }),
 }));
+vi.mock('@/hooks/useWorkspace', () => ({
+  useWorkspace: () => ({
+    workspace: null,
+    loading: false,
+    error: null,
+    refresh: vi.fn(),
+    invite: vi.fn(),
+    refundInvite: vi.fn(),
+    removeSeat: vi.fn(),
+    leave: vi.fn(),
+  }),
+}));
 vi.mock('@/hooks/useSubscription', () => ({
   useSubscription: () => ({ subscription: null, loading: false, activate: vi.fn(), cancel: vi.fn(), redeem: vi.fn() }),
 }));
@@ -35,6 +47,18 @@ describe('routes', () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/'] });
     render(<RouterProvider router={router} />);
     expect(screen.getByText(/frontier models forget/i)).toBeInTheDocument();
+  });
+
+  it('redirects unauthenticated user from /app/workspace to /login', async () => {
+    const router = createMemoryRouter(routes, { initialEntries: ['/app/workspace'] });
+    render(<RouterProvider router={router} />);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
+  });
+
+  it('redirects unauthenticated user from /app/workspace/accept to /login', async () => {
+    const router = createMemoryRouter(routes, { initialEntries: ['/app/workspace/accept?token=T'] });
+    render(<RouterProvider router={router} />);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
   });
 });
 
