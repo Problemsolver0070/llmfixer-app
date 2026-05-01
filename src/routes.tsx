@@ -16,6 +16,8 @@ import { Models } from '@/pages/app/Models';
 import Keys from '@/pages/app/Keys';
 import Billing from '@/pages/app/Billing';
 import BillingUpgrade from '@/pages/app/BillingUpgrade';
+import Workspace from '@/pages/app/Workspace';
+import WorkspaceAccept from '@/pages/app/WorkspaceAccept';
 import Account from '@/pages/app/Account';
 import AdminPromos from '@/pages/app/admin/Promos';
 import AdminUsers from '@/pages/app/admin/Users';
@@ -49,6 +51,8 @@ export const routes: RouteObject[] = [
       { path: 'setup', Component: Setup },
       { path: 'models', Component: Models },
       { path: 'keys', Component: Keys },
+      { path: 'workspace', Component: Workspace },
+      { path: 'workspace/accept', Component: WorkspaceAccept },
       { path: 'billing', Component: Billing },
       { path: 'billing/upgrade', element: <BillingUpgrade /> },
       { path: 'account', Component: Account },

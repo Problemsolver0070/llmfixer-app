@@ -10,14 +10,19 @@ import {
   type AppShellWidthContextValue,
 } from './appShellWidth';
 
-const TABS = [
+const BASE_TABS_BEFORE_WORKSPACE = [
   { to: '/app/dashboard', label: 'Dashboard' },
   { to: '/app/setup', label: 'Setup' },
   { to: '/app/models', label: 'Models' },
   { to: '/app/keys', label: 'Keys' },
+];
+
+const BASE_TABS_AFTER_WORKSPACE = [
   { to: '/app/billing', label: 'Billing' },
   { to: '/app/account', label: 'Account' },
 ];
+
+const WORKSPACE_TAB = { to: '/app/workspace', label: 'Workspace' };
 
 function Tab({ to, label }: { to: string; label: string }) {
   const loc = useLocation();
@@ -43,7 +48,17 @@ export function AppShell({ width: initialWidth = 'narrow', children }: Props) {
   const { data } = useAccount();
   const [width, setWidth] = useState<AppShellWidth>(initialWidth);
   const isAdmin = data?.user.role === 'admin';
-  const tabs = isAdmin ? [...TABS, { to: '/app/admin', label: 'Admin' }] : TABS;
+  const planId = data?.user.plan_id ?? null;
+  const workspaceAdminId = data?.user.workspace_admin_id ?? null;
+  const showWorkspace =
+    Boolean(planId?.startsWith('workspace-') && !workspaceAdminId) ||
+    Boolean(workspaceAdminId);
+  const tabs = [
+    ...BASE_TABS_BEFORE_WORKSPACE,
+    ...(showWorkspace ? [WORKSPACE_TAB] : []),
+    ...BASE_TABS_AFTER_WORKSPACE,
+    ...(isAdmin ? [{ to: '/app/admin', label: 'Admin' }] : []),
+  ];
 
   const setWidthStable = useCallback((w: AppShellWidth) => setWidth(w), []);
   const ctxValue = useMemo<AppShellWidthContextValue>(
