@@ -12,6 +12,8 @@ export interface AccountData {
     paypal_sub_id: string | null;
     cancels_at: string | null;
     comp_until: string | null;
+    plan_id: string | null;
+    seat_count: number;
   };
   requests_this_week: number;
   active_key_count: number;
