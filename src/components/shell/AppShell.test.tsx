@@ -15,10 +15,17 @@ type ShellOpts = {
   path?: string;
   plan_id?: string | null;
   workspace_admin_id?: string | null;
+  hasActiveSubscription?: boolean;
 };
 
 function shell(opts: ShellOpts = {}) {
-  const { role = 'user', path = '/app/dashboard', plan_id = null, workspace_admin_id = null } = opts;
+  const {
+    role = 'user',
+    path = '/app/dashboard',
+    plan_id = null,
+    workspace_admin_id = null,
+    hasActiveSubscription = false,
+  } = opts;
   useAccount.mockReturnValue({
     data: {
       user: { id: 'u', email: 'a@b.c', role, status: 'trial', trial_ends_at: null,
@@ -26,7 +33,7 @@ function shell(opts: ShellOpts = {}) {
               plan_id, seat_count: 1, workspace_admin_id },
       requests_this_week: 0, active_key_count: 0,
     },
-    loading: false, error: null, refresh: async () => {},
+    loading: false, error: null, hasActiveSubscription, refresh: async () => {},
   });
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -80,7 +87,7 @@ describe('AppShell', () => {
                 plan_id: null, seat_count: 1, workspace_admin_id: null },
         requests_this_week: 0, active_key_count: 0,
       },
-      loading: false, error: null, refresh: async () => {},
+      loading: false, error: null, hasActiveSubscription: false, refresh: async () => {},
     });
     const { container } = render(
       <MemoryRouter initialEntries={['/app/setup']}>
@@ -122,5 +129,28 @@ describe('AppShell', () => {
     expect(keysIdx).toBeGreaterThanOrEqual(0);
     expect(workspaceIdx).toBe(keysIdx + 1);
     expect(billingIdx).toBe(workspaceIdx + 1);
+  });
+
+  it('includes ChatNavLink for paid users (hasActiveSubscription=true)', () => {
+    shell({ hasActiveSubscription: true });
+    const link = screen.getByRole('link', { name: /chat/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute('href', 'https://chat.thefixer.in');
+  });
+
+  it('hides ChatNavLink for unpaid users (hasActiveSubscription=false)', () => {
+    shell({ hasActiveSubscription: false });
+    expect(screen.queryByRole('link', { name: /^chat$/i })).not.toBeInTheDocument();
+  });
+
+  it('places ChatNavLink after Account and before Admin', () => {
+    shell({ role: 'admin', hasActiveSubscription: true });
+    const links = screen.getAllByRole('link').map((a) => a.textContent);
+    const accountIdx = links.indexOf('Account');
+    const chatIdx = links.indexOf('Chat');
+    const adminIdx = links.indexOf('Admin');
+    expect(accountIdx).toBeGreaterThanOrEqual(0);
+    expect(chatIdx).toBe(accountIdx + 1);
+    expect(adminIdx).toBe(chatIdx + 1);
   });
 });
