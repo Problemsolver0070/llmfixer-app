@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Brand } from './Brand';
+import { ChatNavLink } from './ChatNavLink';
 import { UserMenu } from './UserMenu';
 import { useAccount } from '@/hooks/useAccount';
 import {
@@ -57,8 +58,8 @@ export function AppShell({ width: initialWidth = 'narrow', children }: Props) {
     ...BASE_TABS_BEFORE_WORKSPACE,
     ...(showWorkspace ? [WORKSPACE_TAB] : []),
     ...BASE_TABS_AFTER_WORKSPACE,
-    ...(isAdmin ? [{ to: '/app/admin', label: 'Admin' }] : []),
   ];
+  const adminTab = isAdmin ? { to: '/app/admin', label: 'Admin' } : null;
 
   const setWidthStable = useCallback((w: AppShellWidth) => setWidth(w), []);
   const ctxValue = useMemo<AppShellWidthContextValue>(
@@ -75,6 +76,8 @@ export function AppShell({ width: initialWidth = 'narrow', children }: Props) {
             {tabs.map((t) => (
               <Tab key={t.to} to={t.to} label={t.label} />
             ))}
+            <ChatNavLink />
+            {adminTab && <Tab to={adminTab.to} label={adminTab.label} />}
           </nav>
           {data && <UserMenu email={data.user.email} />}
         </header>
