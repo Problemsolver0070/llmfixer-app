@@ -6,6 +6,7 @@ import { SignInForm } from '@/components/forms/SignInForm';
 
 export default function Login() {
   const [params] = useSearchParams();
+  const inviteToken = params.get('invite');
   useEffect(() => {
     if (params.get('reason') === 'expired') {
       toast.message('Session expired. Please sign in again.');
@@ -14,7 +15,7 @@ export default function Login() {
 
   return (
     <AuthShell title="Sign in" subtitle="to your console">
-      <SignInForm />
+      <SignInForm inviteToken={inviteToken} />
     </AuthShell>
   );
 }
