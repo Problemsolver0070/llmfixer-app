@@ -92,7 +92,7 @@ export default function Landing() {
           ) : (
             <>
               <Link
-                to="/signup"
+                to="/pricing"
                 style={{
                   color: 'var(--color-accent-bright)',
                   border: '1px solid var(--color-accent)',

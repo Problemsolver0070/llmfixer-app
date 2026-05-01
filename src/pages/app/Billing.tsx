@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { PayPalButtons } from '@paypal/react-paypal-js';
+import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { RedeemPromoForm } from '@/components/forms/RedeemPromoForm';
 import { useAccount } from '@/hooks/useAccount';
 import { useSubscription } from '@/hooks/useSubscription';
-import { env } from '@/lib/env';
 import { formatDateTime } from '@/lib/format';
 
 export default function Billing() {
   const { data, loading } = useAccount();
-  const { subscription, activate, cancel, redeem } = useSubscription();
+  const { subscription, cancel, redeem } = useSubscription();
   const [confirmCancel, setConfirmCancel] = useState(false);
 
   if (loading || !data) return <p style={{ color: 'var(--color-text-dim)' }}>Loading...</p>;
@@ -23,7 +22,7 @@ export default function Billing() {
       <header>
         <h1 style={{ fontSize: 24, fontWeight: 300, margin: 0 }}>Billing</h1>
         <p style={{ fontSize: 12, color: 'var(--color-text-dim)', margin: '4px 0 0' }}>
-          Flat rate, $9.99 first week then $19.99 per week. Cancel any time.
+          Pricing and plan management.
         </p>
       </header>
 
@@ -44,27 +43,30 @@ export default function Billing() {
         )}
       </Card>
 
-      {showSubscribe && (
+      {showSubscribe ? (
         <Card>
           <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: '0 0 12px' }}>
             Subscribe
           </p>
-          <PayPalButtons
-            style={{ layout: 'horizontal', color: 'gold', shape: 'rect', label: 'subscribe' }}
-            createSubscription={(_data, actions) =>
-              actions.subscription.create({ plan_id: env.paypalPlanId })
-            }
-            onApprove={async (data) => {
-              if (data.subscriptionID) {
-                await activate(data.subscriptionID);
-              }
-            }}
-            onError={(err) => {
-              console.error('PayPal error', err);
-            }}
-          />
+          <p style={{ fontSize: 13, color: 'var(--color-text-dim)', margin: '0 0 12px' }}>
+            Pick a plan to keep your access after the trial ends.
+          </p>
+          <Link to="/pricing" className="trial-banner-cta">See plans &rarr;</Link>
         </Card>
-      )}
+      ) : null}
+
+      {u.status === 'active' && u.plan_id ? (
+        <Card>
+          <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: '0 0 12px' }}>
+            Plan
+          </p>
+          <p style={{ fontSize: 14, color: 'var(--color-text)', margin: '0 0 12px' }}>
+            <span className="code-id" style={{ color: 'var(--color-accent-copper-bright)' }}>{u.plan_id}</span>
+            {' '}with {u.seat_count} seat{u.seat_count === 1 ? '' : 's'}.
+          </p>
+          <Link to="/app/billing/upgrade" className="trial-banner-cta">Change plan &rarr;</Link>
+        </Card>
+      ) : null}
 
       <Card>
         <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: '0 0 12px' }}>
@@ -92,10 +94,7 @@ export default function Billing() {
           <Button variant="ghost" onClick={() => setConfirmCancel(false)}>Keep subscription</Button>
           <Button
             variant="danger"
-            onClick={async () => {
-              await cancel();
-              setConfirmCancel(false);
-            }}
+            onClick={async () => { await cancel(); setConfirmCancel(false); }}
           >
             Confirm cancel
           </Button>

@@ -8,11 +8,14 @@ import SignUp from '@/pages/public/SignUp';
 import Forgot from '@/pages/public/Forgot';
 import Reset from '@/pages/public/Reset';
 import VerifyEmail from '@/pages/public/VerifyEmail';
+import Pricing from '@/pages/public/Pricing';
+import PricingEnterprise from '@/pages/public/PricingEnterprise';
 import Dashboard from '@/pages/app/Dashboard';
 import Setup from '@/pages/app/Setup';
 import { Models } from '@/pages/app/Models';
 import Keys from '@/pages/app/Keys';
 import Billing from '@/pages/app/Billing';
+import BillingUpgrade from '@/pages/app/BillingUpgrade';
 import Account from '@/pages/app/Account';
 import AdminPromos from '@/pages/app/admin/Promos';
 import AdminUsers from '@/pages/app/admin/Users';
@@ -31,6 +34,8 @@ export const routes: RouteObject[] = [
   { path: '/forgot', Component: Forgot },
   { path: '/reset', Component: Reset },
   { path: '/verify-email', Component: VerifyEmail },
+  { path: '/pricing', Component: Pricing },
+  { path: '/pricing/enterprise', Component: PricingEnterprise },
   {
     path: '/app',
     element: (
@@ -45,6 +50,7 @@ export const routes: RouteObject[] = [
       { path: 'models', Component: Models },
       { path: 'keys', Component: Keys },
       { path: 'billing', Component: Billing },
+      { path: 'billing/upgrade', element: <BillingUpgrade /> },
       { path: 'account', Component: Account },
       {
         path: 'admin',
