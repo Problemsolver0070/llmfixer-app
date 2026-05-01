@@ -11,5 +11,4 @@ export const env = {
   supabaseAnonKey: required('VITE_SUPABASE_ANON_KEY'),
   apiBase: import.meta.env.VITE_API_BASE || 'https://api.thefixer.in',
   paypalClientId: required('VITE_PAYPAL_CLIENT_ID'),
-  paypalPlanId: required('VITE_PAYPAL_PLAN_ID'),
 };
