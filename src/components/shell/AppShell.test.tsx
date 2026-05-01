@@ -133,21 +133,21 @@ describe('AppShell', () => {
 
   it('includes ChatNavLink for paid users (hasActiveSubscription=true)', () => {
     shell({ hasActiveSubscription: true });
-    const link = screen.getByRole('link', { name: /chat/i });
+    const link = screen.getByRole('link', { name: /the fixer ai/i });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('href', 'https://chat.thefixer.in');
   });
 
   it('hides ChatNavLink for unpaid users (hasActiveSubscription=false)', () => {
     shell({ hasActiveSubscription: false });
-    expect(screen.queryByRole('link', { name: /^chat$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /^the fixer ai$/i })).not.toBeInTheDocument();
   });
 
   it('places ChatNavLink after Account and before Admin', () => {
     shell({ role: 'admin', hasActiveSubscription: true });
     const links = screen.getAllByRole('link').map((a) => a.textContent);
     const accountIdx = links.indexOf('Account');
-    const chatIdx = links.indexOf('Chat');
+    const chatIdx = links.indexOf('The Fixer ai');
     const adminIdx = links.indexOf('Admin');
     expect(accountIdx).toBeGreaterThanOrEqual(0);
     expect(chatIdx).toBe(accountIdx + 1);
