@@ -63,6 +63,7 @@ describe('WorkspaceAccept', () => {
       data: null,
       loading: false,
       error: null,
+      hasActiveSubscription: false,
       refresh: vi.fn(),
     });
     renderAt('TOKEN-X');

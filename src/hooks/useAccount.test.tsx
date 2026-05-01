@@ -138,3 +138,59 @@ describe('useAccount', () => {
     expect(apiCall).toHaveBeenCalledTimes(1);
   });
 });
+
+function makeUnsignedJwt(claims: Record<string, unknown>): string {
+  const enc = (s: string) =>
+    btoa(s).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+  const header = enc(JSON.stringify({ alg: 'none', typ: 'JWT' }));
+  const payload = enc(JSON.stringify(claims));
+  return `${header}.${payload}.`;
+}
+
+describe('useAccount has_active_subscription', () => {
+  beforeEach(() => {
+    apiCall.mockReset();
+    apiCall.mockResolvedValue({
+      user: { id: 'u1', email: 'a@b.c', role: 'user', status: 'active' },
+      requests_this_week: 0,
+      active_key_count: 0,
+    });
+  });
+
+  it('hasActiveSubscription=true when claim is true', async () => {
+    const token = makeUnsignedJwt({ sub: 'u1', has_active_subscription: true });
+    getSession.mockResolvedValue({
+      data: { session: { access_token: token, user: { id: 'u1' } } },
+    });
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.hasActiveSubscription).toBe(true);
+  });
+
+  it('hasActiveSubscription=false when claim is false', async () => {
+    const token = makeUnsignedJwt({ sub: 'u1', has_active_subscription: false });
+    getSession.mockResolvedValue({
+      data: { session: { access_token: token, user: { id: 'u1' } } },
+    });
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.hasActiveSubscription).toBe(false);
+  });
+
+  it('hasActiveSubscription=false when no session', async () => {
+    getSession.mockResolvedValue({ data: { session: null } });
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.hasActiveSubscription).toBe(false);
+  });
+
+  it('hasActiveSubscription=false when claim missing from JWT', async () => {
+    const token = makeUnsignedJwt({ sub: 'u1' });
+    getSession.mockResolvedValue({
+      data: { session: { access_token: token, user: { id: 'u1' } } },
+    });
+    const { result } = renderHook(() => useAccount());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.hasActiveSubscription).toBe(false);
+  });
+});
