@@ -1211,3 +1211,478 @@ button {
   border-bottom: 1px solid transparent;
 }
 .trial-banner-cta:hover { border-bottom-color: var(--color-accent-copper); }
+
+/* Workspace accept-invite page (Plan A.2.b, Task 15). Terminal-editorial:
+   Fraunces italic title, mono everywhere else, copper rule on info blocks,
+   warm tint on warn blocks, no shadows or border-radius. */
+.workspace-accept-page {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 96px 28px 80px;
+}
+.workspace-accept-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  margin: 0 0 14px;
+}
+.workspace-accept-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-variation-settings: 'opsz' 96;
+  font-size: clamp(28px, 4vw, 36px);
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  margin: 0 0 12px;
+  color: var(--color-text);
+}
+.workspace-accept-sub {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-dim);
+  margin: 0 0 24px;
+  line-height: 1.6;
+}
+.workspace-accept-block {
+  margin: 18px 0;
+  padding: 14px 16px;
+  border-left: 2px solid var(--color-accent-copper);
+  background: rgba(201, 123, 58, 0.04);
+}
+.workspace-accept-block-warn {
+  border-left-color: var(--color-accent-copper-bright);
+  background: rgba(231, 162, 67, 0.06);
+}
+.workspace-accept-block-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  margin-bottom: 8px;
+}
+.workspace-accept-block-body {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text);
+  line-height: 1.65;
+  margin: 0;
+}
+.workspace-accept-block-body ul {
+  margin: 4px 0 0;
+  padding-inline-start: 18px;
+}
+.workspace-accept-block-body li {
+  margin: 4px 0;
+}
+.workspace-accept-block-body strong {
+  color: var(--color-text);
+  font-weight: 500;
+}
+.workspace-accept-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 28px;
+  align-items: baseline;
+}
+.workspace-accept-cta {
+  background: transparent;
+  border: 0;
+  padding: 0 0 2px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--color-accent-copper-bright);
+  text-align: left;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+.workspace-accept-cta:hover { border-bottom-color: var(--color-accent-copper); }
+.workspace-accept-cta:disabled {
+  color: var(--color-text-dim);
+  cursor: not-allowed;
+}
+.workspace-accept-cta-quiet {
+  color: var(--color-text-dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  background: transparent;
+  border: 0;
+  padding: 0 0 2px;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+.workspace-accept-cta-quiet:hover {
+  color: var(--color-text);
+  border-bottom-color: var(--color-text-dim);
+}
+.workspace-accept-error-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(24px, 3.4vw, 30px);
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  margin: 0 0 12px;
+  color: var(--color-text);
+}
+.workspace-accept-error-body {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-dim);
+  line-height: 1.65;
+  margin: 0 0 20px;
+  max-width: 56ch;
+}
+.workspace-accept-loading {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-dim);
+}
+@media (max-width: 600px) {
+  .workspace-accept-page { padding: 64px 20px 48px; }
+}
+
+/* /app/workspace page (Plan A.2.b, Task 14). Terminal-editorial:
+   Fraunces serif title, mono everywhere else, copper accent on actions and
+   the "you" row tint. No shadows, no border-radius (matches table conventions
+   elsewhere in the app). The pool gauge from the v1 mockup is intentionally
+   absent; the 5M/seat/wk cap surfaces only via reactive 429s. */
+.workspace-page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px 8px 64px;
+}
+.workspace-header {
+  padding: 4px 0 18px;
+  border-bottom: 1px solid var(--rule-fine);
+  margin-bottom: 4px;
+}
+.workspace-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-variation-settings: 'opsz' 96;
+  font-size: clamp(24px, 3.4vw, 30px);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin: 0 0 6px;
+  color: var(--color-text);
+}
+.workspace-meta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--color-text-dim);
+  margin: 0;
+}
+.workspace-section {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--rule-fine);
+}
+.workspace-section:last-of-type { border-bottom: 0; }
+.workspace-section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  margin-bottom: 12px;
+}
+.workspace-hint {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--color-text-dim);
+  margin: 10px 0 0;
+  line-height: 1.55;
+}
+.workspace-invite-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.workspace-invite-input {
+  flex: 1 1 280px;
+  min-width: 0;
+  background: var(--color-bg-elev);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  border-radius: 0;
+  outline: none;
+}
+.workspace-invite-input:focus {
+  border-color: var(--color-accent-copper);
+}
+.workspace-invite-input:disabled {
+  color: var(--color-text-dim);
+  cursor: not-allowed;
+}
+.workspace-invite-submit {
+  background: transparent;
+  border: 0;
+  padding: 0 0 2px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--color-accent-copper-bright);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.workspace-invite-submit:hover {
+  border-bottom-color: var(--color-accent-copper);
+}
+.workspace-invite-submit:disabled {
+  color: var(--color-text-dim);
+  cursor: not-allowed;
+}
+.workspace-invite-error {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  color: var(--color-danger);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.workspace-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.workspace-table th {
+  text-align: left;
+  font-weight: 500;
+  padding: 8px 10px 8px 0;
+  color: var(--color-text-dim);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--rule-fine);
+}
+.workspace-table td {
+  padding: 10px 10px 10px 0;
+  border-top: 1px solid var(--rule-fine);
+  vertical-align: middle;
+  color: var(--color-text);
+}
+.workspace-table tr.workspace-row-you td {
+  background: rgba(201, 123, 58, 0.06);
+}
+.workspace-row-email {
+  color: var(--color-text);
+}
+.workspace-numeric {
+  color: var(--color-text);
+}
+.workspace-role-pill {
+  display: inline-block;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  border: 1px solid var(--color-border);
+  padding: 1px 6px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.workspace-pending-pill {
+  display: inline-block;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 1px 6px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.workspace-redacted {
+  font-style: italic;
+  color: var(--color-text-dim);
+  font-size: 11.5px;
+}
+.workspace-row-action {
+  background: transparent;
+  border: 0;
+  padding: 0 0 1px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--color-text-dim);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.workspace-row-action:hover {
+  color: var(--color-accent-copper-bright);
+  border-bottom-color: var(--color-accent-copper);
+}
+.workspace-leave {
+  background: transparent;
+  border: 0;
+  padding: 0 0 2px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-dim);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.workspace-leave:hover {
+  color: var(--color-text);
+  border-bottom-color: var(--color-text-dim);
+}
+.workspace-empty {
+  padding: 32px 0 8px;
+  text-align: center;
+}
+.workspace-empty p {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--color-text-dim);
+  max-width: 56ch;
+  margin: 0 auto;
+  line-height: 1.6;
+  text-transform: lowercase;
+  letter-spacing: 0.01em;
+}
+.workspace-loading {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-dim);
+  padding: 24px 8px;
+}
+.workspace-error {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--color-danger);
+  padding: 24px 8px;
+}
+@media (max-width: 600px) {
+  .workspace-page { padding: 16px 4px 48px; }
+  .workspace-table th:nth-child(2),
+  .workspace-table td:nth-child(2) { display: none; }
+}
+
+/* Cascade-cancel pre-flight dialog (Plan A.2.b, Task 16). Fired from
+   /app/billing when an admin clicks Cancel or Change-to-Solo while the
+   workspace has active members. Terminal-editorial: Fraunces italic title,
+   mono body and member list, copper accents, no shadows or border-radius. */
+.cascade-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 24px;
+}
+.cascade-dialog {
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  width: 100%;
+  max-width: 460px;
+  padding: 28px 32px;
+  box-shadow: none;
+  font-family: var(--font-mono);
+}
+.cascade-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--color-text);
+  margin: 0 0 14px;
+}
+.cascade-body {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-dim);
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+.cascade-members {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--color-text);
+  padding: 10px 14px;
+  background: rgba(184, 115, 51, 0.04);
+  border-left: 2px solid var(--color-accent-copper);
+  margin: 0 0 14px;
+}
+.cascade-member {
+  padding: 2px 0;
+}
+.cascade-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 22px;
+  align-items: baseline;
+}
+.cascade-btn-keep {
+  background: transparent;
+  border: 1px solid var(--rule-medium);
+  color: var(--color-text-dim);
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border-radius: 0;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.cascade-btn-keep:hover:not(:disabled) {
+  color: var(--color-text);
+  border-color: var(--color-text-dim);
+}
+.cascade-btn-keep:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.cascade-btn-confirm {
+  background: transparent;
+  border: 1px solid var(--color-accent-copper-bright);
+  color: var(--color-accent-copper-bright);
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border-radius: 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.cascade-btn-confirm:hover:not(:disabled) {
+  color: var(--color-bg);
+  background: var(--color-accent-copper-bright);
+  border-color: var(--color-accent-copper-bright);
+}
+.cascade-btn-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (max-width: 480px) {
+  .cascade-dialog { padding: 22px 20px; }
+  .cascade-actions { flex-wrap: wrap; }
+}

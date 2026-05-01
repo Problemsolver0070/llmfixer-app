@@ -6,7 +6,10 @@ import { supabase } from '@/lib/supabase';
 
 const dashboardRedirect = () => `${window.location.origin}/app/dashboard`;
 
-export function SignUpForm() {
+const inviteAcceptRedirect = (token: string) =>
+  `${window.location.origin}/app/workspace/accept?token=${encodeURIComponent(token)}`;
+
+export function SignUpForm({ inviteToken }: { inviteToken?: string | null } = {}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -16,6 +19,8 @@ export function SignUpForm() {
   const [resending, setResending] = useState(false);
   const [resendSent, setResendSent] = useState(false);
   const [resendError, setResendError] = useState<string | null>(null);
+
+  const emailRedirectTo = inviteToken ? inviteAcceptRedirect(inviteToken) : dashboardRedirect();
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,7 +34,7 @@ export function SignUpForm() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: dashboardRedirect() },
+      options: { emailRedirectTo },
     });
     setLoading(false);
     if (error) {
@@ -46,7 +51,7 @@ export function SignUpForm() {
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email,
-      options: { emailRedirectTo: dashboardRedirect() },
+      options: { emailRedirectTo },
     });
     setResending(false);
     if (error) {

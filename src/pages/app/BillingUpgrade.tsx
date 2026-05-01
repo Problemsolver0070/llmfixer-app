@@ -2,15 +2,18 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CadenceToggle, type Cadence } from '@/components/pricing/CadenceToggle';
 import { PlanPicker } from '@/components/pricing/PlanPicker';
+import { CascadeCancelDialog } from '@/components/workspace/CascadeCancelDialog';
 import { usePlans } from '@/hooks/usePlans';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAccount } from '@/hooks/useAccount';
+import { useWorkspace } from '@/hooks/useWorkspace';
 
 export default function BillingUpgrade() {
   const [params] = useSearchParams();
   const { plans, loading: plansLoading } = usePlans();
   const { data: account } = useAccount();
   const { changePlan } = useSubscription();
+  const { workspace } = useWorkspace();
 
   const initialSku = params.get('plan') ?? account?.user.plan_id ?? 'solo-weekly';
   const initialCadence = (initialSku.split('-')[1] ?? 'weekly') as Cadence;
@@ -19,12 +22,18 @@ export default function BillingUpgrade() {
   const [cadence, setCadence] = useState<Cadence>(initialCadence);
   const [seatCount, setSeatCount] = useState<number>(account?.user.seat_count ?? 1);
   const [submitting, setSubmitting] = useState<string | null>(null);
+  const [cascadeOpen, setCascadeOpen] = useState(false);
 
   if (plansLoading) return <p style={{ color: 'var(--color-text-dim)' }}>Loading plans...</p>;
 
   const currentSku = account?.user.plan_id ?? null;
+  const memberOnlyCount = (workspace?.members ?? []).filter((m) => !m.is_admin).length;
+  const isWorkspaceAdminTier =
+    workspace?.viewer_role === 'admin' && (workspace?.plan_id ?? '').startsWith('workspace-');
+  const downgradingToSolo = sku.startsWith('solo-') && (currentSku ?? '').startsWith('workspace-');
+  const cascadeNeeded = isWorkspaceAdminTier && memberOnlyCount > 0 && downgradingToSolo;
 
-  async function onConfirm(): Promise<void> {
+  async function commitChangePlan(): Promise<void> {
     setSubmitting('changing');
     try {
       const tier = sku.startsWith('solo-') ? 'solo' : 'workspace';
@@ -33,6 +42,14 @@ export default function BillingUpgrade() {
       setSubmitting('done');
     } catch (e) {
       setSubmitting(`error: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  function onConfirm(): void {
+    if (cascadeNeeded) {
+      setCascadeOpen(true);
+    } else {
+      void commitChangePlan();
     }
   }
 
@@ -85,6 +102,19 @@ export default function BillingUpgrade() {
       ) : null}
       {submitting?.startsWith('error') ? (
         <p style={{ color: 'var(--color-danger)', fontSize: 13 }}>{submitting}</p>
+      ) : null}
+
+      {cascadeOpen && workspace ? (
+        <CascadeCancelDialog
+          members={workspace.members.filter((m) => !m.is_admin).map((m) => ({ email: m.email }))}
+          accessLossDate="immediately"
+          action="downgrade"
+          onCancel={() => setCascadeOpen(false)}
+          onConfirm={async () => {
+            setCascadeOpen(false);
+            await commitChangePlan();
+          }}
+        />
       ) : null}
     </div>
   );

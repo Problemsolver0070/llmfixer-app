@@ -4,18 +4,39 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { RedeemPromoForm } from '@/components/forms/RedeemPromoForm';
+import { CascadeCancelDialog } from '@/components/workspace/CascadeCancelDialog';
 import { useAccount } from '@/hooks/useAccount';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useWorkspace } from '@/hooks/useWorkspace';
 import { formatDateTime } from '@/lib/format';
 
 export default function Billing() {
   const { data, loading } = useAccount();
   const { subscription, cancel, redeem } = useSubscription();
+  const { workspace } = useWorkspace();
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cascadeOpen, setCascadeOpen] = useState(false);
 
   if (loading || !data) return <p style={{ color: 'var(--color-text-dim)' }}>Loading...</p>;
   const u = data.user;
   const showSubscribe = ['trial', 'trial_expired', 'cancelled', 'expired'].includes(u.status);
+
+  const memberOnlyCount = (workspace?.members ?? []).filter((m) => !m.is_admin).length;
+  const isWorkspaceAdminTier =
+    workspace?.viewer_role === 'admin' && (workspace?.plan_id ?? '').startsWith('workspace-');
+  const cascadeNeeded = isWorkspaceAdminTier && memberOnlyCount > 0;
+
+  function onCancelClicked() {
+    if (cascadeNeeded) {
+      setCascadeOpen(true);
+    } else {
+      setConfirmCancel(true);
+    }
+  }
+
+  const accessLossDate = workspace?.renews_at
+    ? new Date(workspace.renews_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+    : '';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -80,7 +101,7 @@ export default function Billing() {
           <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: '0 0 12px' }}>
             Cancel
           </p>
-          <Button variant="ghost" onClick={() => setConfirmCancel(true)}>
+          <Button variant="ghost" onClick={onCancelClicked}>
             Cancel subscription
           </Button>
         </Card>
@@ -100,6 +121,19 @@ export default function Billing() {
           </Button>
         </div>
       </Modal>
+
+      {cascadeOpen && workspace ? (
+        <CascadeCancelDialog
+          members={workspace.members.filter((m) => !m.is_admin).map((m) => ({ email: m.email }))}
+          accessLossDate={accessLossDate}
+          action="cancel"
+          onCancel={() => setCascadeOpen(false)}
+          onConfirm={async () => {
+            await cancel();
+            setCascadeOpen(false);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
