@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAppShellWidth } from '@/components/shell/appShellWidth';
 import { SetupReference } from '@/components/setup/SetupReference';
+import { ChatCrossLink } from '@/components/setup/ChatCrossLink';
 import { SupportChat } from '@/components/support/SupportChat';
 
 const MOBILE_QUERY = '(max-width: 1023px)';
@@ -34,28 +35,31 @@ export function Setup() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="setup-grid">
-      <aside className="setup-grid-reference" aria-label="Setup reference">
-        {isMobile ? (
-          <div className="setup-reference-disclosure">
-            <button
-              type="button"
-              className="setup-reference-disclosure-summary"
-              aria-expanded={open}
-              onClick={() => setOpen((o) => !o)}
-            >
-              <span className="tick">{'>'}</span> Quick reference
-            </button>
-            {open && <SetupReference />}
-          </div>
-        ) : (
-          <SetupReference />
-        )}
-      </aside>
-      <section className="setup-grid-chat" aria-label="Support chat">
-        <SupportChat />
-      </section>
-    </div>
+    <>
+      <div className="setup-grid">
+        <aside className="setup-grid-reference" aria-label="Setup reference">
+          {isMobile ? (
+            <div className="setup-reference-disclosure">
+              <button
+                type="button"
+                className="setup-reference-disclosure-summary"
+                aria-expanded={open}
+                onClick={() => setOpen((o) => !o)}
+              >
+                <span className="tick">{'>'}</span> Quick reference
+              </button>
+              {open && <SetupReference />}
+            </div>
+          ) : (
+            <SetupReference />
+          )}
+        </aside>
+        <section className="setup-grid-chat" aria-label="Support chat">
+          <SupportChat />
+        </section>
+      </div>
+      <ChatCrossLink />
+    </>
   );
 }
 
