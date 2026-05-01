@@ -14,3 +14,4 @@ vite.config.d.ts
 .preview-*.png
 .playwright-mcp/
 .claude/
+.worktrees/
