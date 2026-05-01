@@ -30,6 +30,16 @@ vi.mock('@/hooks/useSupportThreads', () => ({
   }),
 }));
 
+vi.mock('@/hooks/useAccount', () => ({
+  useAccount: () => ({
+    data: null,
+    loading: false,
+    error: null,
+    hasActiveSubscription: false,
+    refresh: vi.fn(),
+  }),
+}));
+
 const useKeysMock = vi.fn();
 vi.mock('@/hooks/useKeys', () => ({ useKeys: () => useKeysMock() }));
 
