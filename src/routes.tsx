@@ -9,6 +9,7 @@ import Forgot from '@/pages/public/Forgot';
 import Reset from '@/pages/public/Reset';
 import VerifyEmail from '@/pages/public/VerifyEmail';
 import Pricing from '@/pages/public/Pricing';
+import PricingEnterprise from '@/pages/public/PricingEnterprise';
 import Dashboard from '@/pages/app/Dashboard';
 import Setup from '@/pages/app/Setup';
 import { Models } from '@/pages/app/Models';
@@ -24,9 +25,6 @@ const placeholder = (label: string) => () => (
     <p>{label}</p>
   </div>
 );
-
-// Stubbed inline; Task 6 replaces this with the real PricingEnterprise page.
-const PricingEnterprise = placeholder('coming');
 
 export const routes: RouteObject[] = [
   { path: '/', Component: Landing },
