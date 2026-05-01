@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { decodeJwt } from 'jose';
 import { api } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
@@ -24,22 +25,38 @@ export interface UseAccountResult {
   data: AccountData | null;
   loading: boolean;
   error: Error | null;
+  hasActiveSubscription: boolean;
   refresh: () => Promise<void>;
+}
+
+function readHasActiveSubscription(accessToken: string | undefined): boolean {
+  if (!accessToken) return false;
+  try {
+    const claims = decodeJwt(accessToken);
+    return Boolean((claims as Record<string, unknown>).has_active_subscription);
+  } catch {
+    return false;
+  }
 }
 
 export function useAccount(): UseAccountResult {
   const [data, setData] = useState<AccountData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
   const fetchOnce = useCallback(async () => {
     setLoading(true);
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session) {
       setData(null);
+      setHasActiveSubscription(false);
       setLoading(false);
       return;
     }
+    setHasActiveSubscription(
+      readHasActiveSubscription(sessionData.session.access_token),
+    );
     try {
       const result = await api<AccountData>('/v1/account');
       setData(result);
@@ -58,6 +75,7 @@ export function useAccount(): UseAccountResult {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         setData(null);
+        setHasActiveSubscription(false);
         setError(null);
         setLoading(false);
         return;
@@ -79,5 +97,5 @@ export function useAccount(): UseAccountResult {
     return () => sub.subscription.unsubscribe();
   }, [fetchOnce]);
 
-  return { data, loading, error, refresh: fetchOnce };
+  return { data, loading, error, hasActiveSubscription, refresh: fetchOnce };
 }
