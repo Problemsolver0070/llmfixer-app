@@ -1211,3 +1211,146 @@ button {
   border-bottom: 1px solid transparent;
 }
 .trial-banner-cta:hover { border-bottom-color: var(--color-accent-copper); }
+
+/* Workspace accept-invite page (Plan A.2.b, Task 15). Terminal-editorial:
+   Fraunces italic title, mono everywhere else, copper rule on info blocks,
+   warm tint on warn blocks, no shadows or border-radius. */
+.workspace-accept-page {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 96px 28px 80px;
+}
+.workspace-accept-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  margin: 0 0 14px;
+}
+.workspace-accept-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-variation-settings: 'opsz' 96;
+  font-size: clamp(28px, 4vw, 36px);
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  margin: 0 0 12px;
+  color: var(--color-text);
+}
+.workspace-accept-sub {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-dim);
+  margin: 0 0 24px;
+  line-height: 1.6;
+}
+.workspace-accept-block {
+  margin: 18px 0;
+  padding: 14px 16px;
+  border-left: 2px solid var(--color-accent-copper);
+  background: rgba(201, 123, 58, 0.04);
+}
+.workspace-accept-block-warn {
+  border-left-color: var(--color-accent-copper-bright);
+  background: rgba(231, 162, 67, 0.06);
+}
+.workspace-accept-block-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  margin-bottom: 8px;
+}
+.workspace-accept-block-body {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text);
+  line-height: 1.65;
+  margin: 0;
+}
+.workspace-accept-block-body ul {
+  margin: 4px 0 0;
+  padding-inline-start: 18px;
+}
+.workspace-accept-block-body li {
+  margin: 4px 0;
+}
+.workspace-accept-block-body strong {
+  color: var(--color-text);
+  font-weight: 500;
+}
+.workspace-accept-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 28px;
+  align-items: baseline;
+}
+.workspace-accept-cta {
+  background: transparent;
+  border: 0;
+  padding: 0 0 2px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--color-accent-copper-bright);
+  text-align: left;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+.workspace-accept-cta:hover { border-bottom-color: var(--color-accent-copper); }
+.workspace-accept-cta:disabled {
+  color: var(--color-text-dim);
+  cursor: not-allowed;
+}
+.workspace-accept-cta-quiet {
+  color: var(--color-text-dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  background: transparent;
+  border: 0;
+  padding: 0 0 2px;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+.workspace-accept-cta-quiet:hover {
+  color: var(--color-text);
+  border-bottom-color: var(--color-text-dim);
+}
+.workspace-accept-error-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(24px, 3.4vw, 30px);
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  margin: 0 0 12px;
+  color: var(--color-text);
+}
+.workspace-accept-error-body {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-dim);
+  line-height: 1.65;
+  margin: 0 0 20px;
+  max-width: 56ch;
+}
+.workspace-accept-loading {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-dim);
+}
+@media (max-width: 600px) {
+  .workspace-accept-page { padding: 64px 20px 48px; }
+}
