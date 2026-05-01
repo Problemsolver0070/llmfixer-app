@@ -8,6 +8,7 @@ import SignUp from '@/pages/public/SignUp';
 import Forgot from '@/pages/public/Forgot';
 import Reset from '@/pages/public/Reset';
 import VerifyEmail from '@/pages/public/VerifyEmail';
+import Pricing from '@/pages/public/Pricing';
 import Dashboard from '@/pages/app/Dashboard';
 import Setup from '@/pages/app/Setup';
 import { Models } from '@/pages/app/Models';
@@ -24,6 +25,9 @@ const placeholder = (label: string) => () => (
   </div>
 );
 
+// Stubbed inline; Task 6 replaces this with the real PricingEnterprise page.
+const PricingEnterprise = placeholder('coming');
+
 export const routes: RouteObject[] = [
   { path: '/', Component: Landing },
   { path: '/login', Component: Login },
@@ -31,6 +35,8 @@ export const routes: RouteObject[] = [
   { path: '/forgot', Component: Forgot },
   { path: '/reset', Component: Reset },
   { path: '/verify-email', Component: VerifyEmail },
+  { path: '/pricing', Component: Pricing },
+  { path: '/pricing/enterprise', Component: PricingEnterprise },
   {
     path: '/app',
     element: (
