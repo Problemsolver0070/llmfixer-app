@@ -43,14 +43,17 @@ export function useSubscription() {
     void fetchSubscription();
   }, [fetchSubscription]);
 
-  const activate = useCallback(async (paypalSubId: string) => {
-    await api('/v1/billing/subscriptions/activate', {
-      method: 'POST',
-      body: { paypal_sub_id: paypalSubId },
-    });
-    await refresh();
-    await fetchSubscription();
-  }, [refresh, fetchSubscription]);
+  const activate = useCallback(
+    async (paypalSubId: string, planId = 'solo-weekly', seatCount = 1) => {
+      await api('/v1/billing/subscriptions/activate', {
+        method: 'POST',
+        body: { paypal_sub_id: paypalSubId, plan_id: planId, seat_count: seatCount },
+      });
+      await refresh();
+      await fetchSubscription();
+    },
+    [refresh, fetchSubscription],
+  );
 
   const cancel = useCallback(async () => {
     await api('/v1/billing/subscriptions/cancel', { method: 'POST' });
@@ -66,5 +69,17 @@ export function useSubscription() {
     return out;
   }, [refresh]);
 
-  return { subscription, loading, activate, cancel, redeem };
+  const changePlan = useCallback(
+    async (planId: string, seatCount: number) => {
+      await api('/v1/billing/subscriptions/change-plan', {
+        method: 'POST',
+        body: { plan_id: planId, seat_count: seatCount },
+      });
+      await refresh();
+      await fetchSubscription();
+    },
+    [refresh, fetchSubscription],
+  );
+
+  return { subscription, loading, activate, cancel, redeem, changePlan };
 }
