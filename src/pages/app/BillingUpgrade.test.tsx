@@ -3,6 +3,29 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import BillingUpgrade from './BillingUpgrade';
 
+const paypalCreateSubscription = vi.fn();
+const paypalOnApprove = vi.fn();
+vi.mock('@paypal/react-paypal-js', () => ({
+  PayPalButtons: (props: { createSubscription?: unknown; onApprove?: unknown; disabled?: boolean }) => {
+    paypalCreateSubscription.mockImplementation(props.createSubscription as never);
+    paypalOnApprove.mockImplementation(props.onApprove as never);
+    return (
+      <button
+        type="button"
+        data-testid="paypal-buttons-mock"
+        disabled={props.disabled}
+        onClick={async () => {
+          const fakeActions = { subscription: { create: vi.fn(async () => 'SUB-NEW') } };
+          await (props.createSubscription as (data: unknown, actions: unknown) => unknown)?.({}, fakeActions);
+          await (props.onApprove as (data: { subscriptionID: string }) => Promise<void>)?.({ subscriptionID: 'SUB-NEW' });
+        }}
+      >
+        PayPal Subscribe
+      </button>
+    );
+  },
+}));
+
 vi.mock('@/hooks/usePlans', () => ({
   usePlans: () => ({
     plans: [
@@ -20,8 +43,9 @@ vi.mock('@/hooks/usePlans', () => ({
   }),
 }));
 const changePlan = vi.fn(async () => {});
+const activate = vi.fn(async () => {});
 vi.mock('@/hooks/useSubscription', () => ({
-  useSubscription: () => ({ subscription: null, loading: false, changePlan, activate: vi.fn(), cancel: vi.fn(), redeem: vi.fn() }),
+  useSubscription: () => ({ subscription: null, loading: false, changePlan, activate, cancel: vi.fn(), redeem: vi.fn() }),
 }));
 const useAccountMock = vi.fn();
 vi.mock('@/hooks/useAccount', () => ({
@@ -33,6 +57,7 @@ vi.mock('@/hooks/useWorkspace', () => ({
 }));
 
 const SOLO_ACCOUNT = { data: { user: { id: 'u', email: 'a', status: 'active', plan_id: 'solo-weekly', seat_count: 1, paypal_sub_id: 'SUB-1' }, requests_this_week: 0, active_key_count: 0 }, loading: false, refresh: vi.fn() };
+const TRIAL_ACCOUNT = { data: { user: { id: 'u-trial', email: 'newuser@x', status: 'trial', plan_id: null, seat_count: 1, paypal_sub_id: null }, requests_this_week: 0, active_key_count: 0 }, loading: false, refresh: vi.fn() };
 const WORKSPACE_ADMIN_ACCOUNT = { data: { user: { id: 'admin-1', email: 'amir@acme.io', status: 'active', plan_id: 'workspace-monthly', seat_count: 5, paypal_sub_id: 'SUB-1' }, requests_this_week: 0, active_key_count: 0 }, loading: false, refresh: vi.fn() };
 const NO_WORKSPACE = { workspace: null, loading: false, error: null, refresh: vi.fn(), invite: vi.fn(), refundInvite: vi.fn(), removeSeat: vi.fn(), leave: vi.fn() };
 
@@ -77,5 +102,34 @@ describe('BillingUpgrade', () => {
     // Confirm via the dialog destructive button.
     fireEvent.click(screen.getByRole('button', { name: /Downgrade to Solo/i }));
     await waitFor(() => expect(changePlan).toHaveBeenCalledWith('solo-weekly', 1));
+  });
+
+  it('renders PayPal Subscribe button when account has no existing subscription', () => {
+    useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+    useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+    render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+    expect(screen.getByText(/Pick a plan/)).toBeInTheDocument();
+    expect(screen.getByText(/Start with a 2-day free trial/)).toBeInTheDocument();
+    expect(screen.getByTestId('paypal-buttons-mock')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /confirm change/i })).not.toBeInTheDocument();
+  });
+
+  it('drives PayPal createSubscription with the picked SKU plan_id and qty=1 for solo', async () => {
+    activate.mockClear();
+    useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+    useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+    render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
+    await waitFor(() => expect(activate).toHaveBeenCalledWith('SUB-NEW', 'solo-weekly', 1));
+  });
+
+  it('drives PayPal createSubscription with TIERED quantity for workspace plans', async () => {
+    activate.mockClear();
+    useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+    useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+    render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=workspace-monthly"]}><BillingUpgrade /></MemoryRouter>);
+    expect(screen.getByText(/4 seats/)).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
+    await waitFor(() => expect(activate).toHaveBeenCalledWith('SUB-NEW', 'workspace-monthly', 4));
   });
 });
