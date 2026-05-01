@@ -13,6 +13,17 @@ export default function Dashboard() {
       <h1 style={{ fontSize: 24, fontWeight: 300, letterSpacing: '-0.01em', margin: 0 }}>
         Dashboard
       </h1>
+      {u.status === 'trial' && !u.paypal_sub_id ? (
+        <div className="trial-banner">
+          <div>
+            <div className="trial-banner-title">Start your subscription</div>
+            <div className="trial-banner-sub">
+              You are on a free trial. Pick a plan to keep your access after the trial ends.
+            </div>
+          </div>
+          <Link to="/pricing" className="trial-banner-cta">See plans →</Link>
+        </div>
+      ) : null}
       <Card>
         <AccountStateCard user={u} />
       </Card>
