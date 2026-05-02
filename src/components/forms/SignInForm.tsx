@@ -1,8 +1,9 @@
 import { type FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { supabase } from '@/lib/supabase';
+import { resolveNextDestination } from '@/lib/next-redirect';
 
 const dashboardRedirect = () => `${window.location.origin}/app/dashboard`;
 
@@ -17,6 +18,7 @@ function isUnverified(err: { code?: string; message?: string } | null): boolean 
 
 export function SignInForm({ inviteToken }: { inviteToken?: string | null } = {}) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -29,9 +31,11 @@ export function SignInForm({ inviteToken }: { inviteToken?: string | null } = {}
   const resendEmailRedirectTo = inviteToken
     ? inviteAcceptRedirect(inviteToken)
     : dashboardRedirect();
+  // Invite acceptance flow takes precedence; otherwise honor ?next= for
+  // cross-subdomain redirects (e.g. chat.thefixer.in click-through).
   const successPath = inviteToken
     ? `/app/workspace/accept?token=${encodeURIComponent(inviteToken)}`
-    : '/app/dashboard';
+    : resolveNextDestination(searchParams.get('next'));
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,7 +54,13 @@ export function SignInForm({ inviteToken }: { inviteToken?: string | null } = {}
       setError('Wrong email or password.');
       return;
     }
-    navigate(successPath);
+    // Cross-subdomain absolute URLs need a full document navigation so the
+    // browser sends the newly-set .thefixer.in cookie on the next request.
+    if (/^https?:\/\//i.test(successPath)) {
+      window.location.href = successPath;
+    } else {
+      navigate(successPath);
+    }
   }
 
   async function onResend() {
