@@ -1,15 +1,27 @@
 import { type FormEvent, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { supabase } from '@/lib/supabase';
+import { resolveNextDestination } from '@/lib/next-redirect';
 
 const dashboardRedirect = () => `${window.location.origin}/app/dashboard`;
 
 const inviteAcceptRedirect = (token: string) =>
   `${window.location.origin}/app/workspace/accept?token=${encodeURIComponent(token)}`;
 
+// Honor ?next= when present and valid, so a user who lands on /signup
+// after being bounced from chat.thefixer.in returns there once their
+// confirmation email is verified. Same allow-list as SignInForm.
+function resolveSignupRedirect(rawNext: string | null, inviteToken: string | null | undefined) {
+  if (inviteToken) return inviteAcceptRedirect(inviteToken);
+  const resolved = resolveNextDestination(rawNext);
+  if (/^https?:\/\//i.test(resolved)) return resolved;
+  return `${window.location.origin}${resolved}`;
+}
+
 export function SignUpForm({ inviteToken }: { inviteToken?: string | null } = {}) {
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +32,12 @@ export function SignUpForm({ inviteToken }: { inviteToken?: string | null } = {}
   const [resendSent, setResendSent] = useState(false);
   const [resendError, setResendError] = useState<string | null>(null);
 
-  const emailRedirectTo = inviteToken ? inviteAcceptRedirect(inviteToken) : dashboardRedirect();
+  const rawNext = searchParams.get('next');
+  const emailRedirectTo = rawNext
+    ? resolveSignupRedirect(rawNext, inviteToken ?? null)
+    : inviteToken
+      ? inviteAcceptRedirect(inviteToken)
+      : dashboardRedirect();
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
