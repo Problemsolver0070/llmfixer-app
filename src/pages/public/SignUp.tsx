@@ -6,7 +6,7 @@ export default function SignUp() {
   const [params] = useSearchParams();
   const inviteToken = params.get('invite');
   return (
-    <AuthShell title="Create account" subtitle="48-hour free trial, no card required">
+    <AuthShell title="Create account" subtitle="24-hour free trial, card on file, cancel anytime">
       <SignUpForm inviteToken={inviteToken} />
     </AuthShell>
   );

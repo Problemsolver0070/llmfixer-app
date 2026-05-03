@@ -101,7 +101,7 @@ export default function Landing() {
                   letterSpacing: '0.04em',
                 }}
               >
-                Start 48-hour trial
+                Start 24-hour trial
               </Link>
               <Link
                 to="/login"

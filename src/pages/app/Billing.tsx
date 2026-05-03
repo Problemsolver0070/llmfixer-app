@@ -67,14 +67,6 @@ export default function Billing() {
         )}
       </Card>
 
-      <Card>
-        <RedeemCodeForm
-          onRedeemed={async () => {
-            await Promise.all([refreshAccount(), refreshUserMe()]);
-          }}
-        />
-      </Card>
-
       {showSubscribe ? (
         <Card>
           <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: '0 0 12px' }}>
@@ -100,13 +92,6 @@ export default function Billing() {
         </Card>
       ) : null}
 
-      <Card>
-        <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: '0 0 12px' }}>
-          Promo code
-        </p>
-        <RedeemPromoForm onRedeem={redeem} />
-      </Card>
-
       {u.status === 'active' && !u.cancels_at && (
         <Card>
           <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: '0 0 12px' }}>
@@ -117,6 +102,24 @@ export default function Billing() {
           </Button>
         </Card>
       )}
+
+      <Card>
+        <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: '0 0 12px' }}>
+          Have a code?
+        </p>
+        <RedeemCodeForm
+          onRedeemed={async () => {
+            await Promise.all([refreshAccount(), refreshUserMe()]);
+          }}
+        />
+      </Card>
+
+      <Card>
+        <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: '0 0 12px' }}>
+          Promo code (legacy)
+        </p>
+        <RedeemPromoForm onRedeem={redeem} />
+      </Card>
 
       <Modal open={confirmCancel} onClose={() => setConfirmCancel(false)} title="Cancel subscription?">
         <p style={{ fontSize: 13, color: 'var(--color-text-dim)', marginBottom: 18 }}>
