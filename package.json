@@ -14,7 +14,9 @@
   "dependencies": {
     "@paypal/react-paypal-js": "^9.1.1",
     "@supabase/supabase-js": "^2.104.1",
+    "@types/qrcode": "^1.5.6",
     "jose": "^6.2.3",
+    "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^9.1.0",
