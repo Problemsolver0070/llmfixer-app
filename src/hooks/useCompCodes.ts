@@ -46,7 +46,9 @@ export interface MintCompCodeBatchInput {
 }
 
 export interface MintBatchResult {
-  rows: CompCode[];
+  // Backend returns this list under the key `codes`, not `rows`. Keep the
+  // field name in sync with `CompCodeBatchResponse.codes` in the api repo.
+  codes: CompCode[];
   batch_id: string;
   count: number;
 }

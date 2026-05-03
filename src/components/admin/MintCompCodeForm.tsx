@@ -522,11 +522,11 @@ function MintResultPanel({ result }: { result: MintResult }) {
         Batch id: <code>{result.batch.batch_id}</code>
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {result.batch.rows.map((c) => (
+        {result.batch.codes.map((c) => (
           <CodeWithCopy key={c.id} code={c.code} />
         ))}
       </div>
-      <CopyAllButton codes={result.batch.rows.map((r) => r.code)} />
+      <CopyAllButton codes={result.batch.codes.map((r) => r.code)} />
     </div>
   );
 }
