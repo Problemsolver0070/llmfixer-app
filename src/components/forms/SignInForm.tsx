@@ -170,6 +170,20 @@ export function SignInForm({ inviteToken }: { inviteToken?: string | null } = {}
         <Button type="submit" loading={mfaLoading} loadingLabel="Verifying...">
           Verify
         </Button>
+        <p
+          style={{
+            textAlign: 'center',
+            fontSize: 11,
+            color: 'var(--color-text-dim)',
+            marginTop: 18,
+          }}
+        >
+          Lost access to your authenticator?{' '}
+          <Link to="/recovery" style={{ color: 'var(--color-link)' }}>
+            Use a recovery code
+          </Link>
+          .
+        </p>
       </form>
     );
   }
