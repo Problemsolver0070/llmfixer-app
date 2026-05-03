@@ -36,3 +36,24 @@ export function formatDuration(seconds: number): string {
   if (minutes > 0) return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
   return `${secs} ${secs === 1 ? 'second' : 'seconds'}`;
 }
+
+/**
+ * Minutes remaining until a deadline (ceiling). 30 seconds = 1 minute,
+ * 90 seconds = 2 minutes. Returns 0 if past. Ceiling matches the
+ * user-facing "you have X minutes left" framing in countdown UIs.
+ */
+export function minutesUntil(deadline: string | Date): number {
+  const target = typeof deadline === 'string' ? new Date(deadline) : deadline;
+  const diffMs = target.getTime() - Date.now();
+  return Math.max(0, Math.ceil(diffMs / 60000));
+}
+
+/**
+ * Seconds remaining until a deadline. Returns 0 if past.
+ * Pass into formatDuration() to render a deadline as e.g. "11 hours".
+ */
+export function secondsUntil(deadline: string | Date): number {
+  const target = typeof deadline === 'string' ? new Date(deadline) : deadline;
+  const diffMs = target.getTime() - Date.now();
+  return Math.max(0, Math.floor(diffMs / 1000));
+}
