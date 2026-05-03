@@ -42,7 +42,7 @@ describe('UserAuditHistory', () => {
     render(<UserAuditHistory userId="u-1" />);
     await waitFor(() => expect(apiCall).toHaveBeenCalled());
     expect(apiCall).toHaveBeenCalledWith(
-      '/v1/admin/audit-log?target_type=user&target_id=u-1&limit=50',
+      '/v1/admin/audit-log?target_type=user&target_id=u-1&limit=50&offset=0',
     );
     expect(screen.getByText('user.comp')).toBeInTheDocument();
     expect(screen.getByText('admin@thefixer.in')).toBeInTheDocument();

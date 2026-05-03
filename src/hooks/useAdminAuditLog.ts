@@ -2,80 +2,95 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 
 /**
- * Audit log row returned by `GET /v1/admin/audit-log`.
- *
- * The `before` and `after` fields are arbitrary JSON snapshots of whichever
- * resource was mutated, so they're typed as `unknown`. The History tab
- * renders them as `JSON.stringify(_, null, 2)` inside an expandable row.
+ * One row from `GET /v1/admin/audit-log`. Mirrors `public.admin_audit_log`,
+ * with the metadata blob exposed as a typed (but loose) object so callers can
+ * render before/after JSON without losing fidelity.
  */
-export interface AdminAuditLogRow {
-  id: string;
-  created_at: string;
-  actor_user_id: string | null;
-  actor_email: string | null;
+export interface AuditLogRow {
+  id: number;
+  actor_id: string | null;
   action: string;
-  target_type: string;
-  target_id: string;
-  reason: string | null;
-  before: unknown;
-  after: unknown;
+  target_user_id: string | null;
+  metadata: AuditLogMetadata;
+  paypal_event_id: string | null;
+  created_at: string;
 }
 
-export interface AdminAuditLogFilters {
+export interface AuditLogMetadata {
   target_type?: string;
   target_id?: string;
-  actor_user_id?: string;
+  before?: unknown;
+  after?: unknown;
+  reason?: string;
+  ip_address?: string;
+  user_agent?: string;
+  // Allow arbitrary extra fields so the UI does not drop unknown metadata.
+  [key: string]: unknown;
+}
+
+export interface AuditLogFilters {
+  target_type?: string;
+  target_id?: string;
   action?: string;
+  admin_user_id?: string;
+  date_from?: string;
+  date_to?: string;
+  search?: string;
   limit?: number;
   offset?: number;
 }
 
-interface AuditLogResponse {
-  rows: AdminAuditLogRow[];
+export interface AuditLogResult {
+  rows: AuditLogRow[];
   total: number;
 }
 
-function buildQuery(filters: AdminAuditLogFilters): string {
-  const params = new URLSearchParams();
-  if (filters.target_type) params.set('target_type', filters.target_type);
-  if (filters.target_id) params.set('target_id', filters.target_id);
-  if (filters.actor_user_id) params.set('actor_user_id', filters.actor_user_id);
-  if (filters.action) params.set('action', filters.action);
-  if (filters.limit !== undefined) params.set('limit', String(filters.limit));
-  if (filters.offset !== undefined) params.set('offset', String(filters.offset));
-  const q = params.toString();
-  return q.length > 0 ? `?${q}` : '';
-}
-
 /**
- * Read the audit log with the given filters. Returns the same shape as the
- * comp/discount list hooks: `{ rows, total, loading, error, refresh }`.
- *
- * Re-fetches whenever the stable primitive fields of the filter change. The
- * caller can also call `refresh()` manually after a mutation to pick up the
- * row that was just appended server-side.
+ * Paginated audit-log fetcher for the admin viewer page. Re-fetches whenever
+ * any of the filter primitives change. Call `refresh()` to force a re-fetch
+ * without changing filters.
  */
-export function useAdminAuditLog(filters: AdminAuditLogFilters): {
-  rows: AdminAuditLogRow[];
+export function useAdminAuditLog(filters: AuditLogFilters): {
+  rows: AuditLogRow[];
   total: number;
   loading: boolean;
   error: Error | null;
   refresh: () => Promise<void>;
 } {
-  const [rows, setRows] = useState<AdminAuditLogRow[]>([]);
-  const [total, setTotal] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [rows, setRows] = useState<AuditLogRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const query = buildQuery(filters);
+  const targetType = filters.target_type ?? '';
+  const targetId = filters.target_id ?? '';
+  const action = filters.action ?? '';
+  const adminUserId = filters.admin_user_id ?? '';
+  const dateFrom = filters.date_from ?? '';
+  const dateTo = filters.date_to ?? '';
+  const search = filters.search ?? '';
+  const limit = filters.limit ?? 50;
+  const offset = filters.offset ?? 0;
 
   const fetchOnce = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await api<AuditLogResponse>(`/v1/admin/audit-log${query}`);
-      setRows(res.rows ?? []);
-      setTotal(res.total ?? 0);
+      const params = new URLSearchParams();
+      if (targetType) params.set('target_type', targetType);
+      if (targetId) params.set('target_id', targetId);
+      if (action) params.set('action', action);
+      if (adminUserId) params.set('admin_user_id', adminUserId);
+      if (dateFrom) params.set('date_from', dateFrom);
+      if (dateTo) params.set('date_to', dateTo);
+      if (search) params.set('search', search);
+      params.set('limit', String(limit));
+      params.set('offset', String(offset));
+      const res = await api<AuditLogResult>(
+        `/v1/admin/audit-log?${params.toString()}`,
+      );
+      setRows(res.rows);
+      setTotal(res.total);
     } catch (e) {
       setError(e instanceof Error ? e : new Error(String(e)));
       setRows([]);
@@ -83,7 +98,17 @@ export function useAdminAuditLog(filters: AdminAuditLogFilters): {
     } finally {
       setLoading(false);
     }
-  }, [query]);
+  }, [
+    targetType,
+    targetId,
+    action,
+    adminUserId,
+    dateFrom,
+    dateTo,
+    search,
+    limit,
+    offset,
+  ]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
