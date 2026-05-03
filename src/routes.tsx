@@ -26,6 +26,7 @@ import Refer from '@/pages/app/Refer';
 import Security from '@/pages/app/account/Security';
 import AdminPromos from '@/pages/app/admin/Promos';
 import AdminUsers from '@/pages/app/admin/Users';
+import AdminUserDetail from '@/pages/app/admin/UserDetail';
 import AdminMetrics from '@/pages/app/admin/Metrics';
 import AdminCodes from '@/pages/app/admin/Codes';
 import AdminAgents from '@/pages/app/admin/Agents';
@@ -74,6 +75,7 @@ export const routes: RouteObject[] = [
           { index: true, element: <Navigate to="/app/admin/promos" replace /> },
           { path: 'promos', Component: AdminPromos },
           { path: 'users', Component: AdminUsers },
+          { path: 'users/:userId', Component: AdminUserDetail },
           { path: 'codes', Component: AdminCodes },
           { path: 'agents', Component: AdminAgents },
           { path: 'metrics', Component: AdminMetrics },
