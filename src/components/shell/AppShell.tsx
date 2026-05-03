@@ -20,6 +20,7 @@ const BASE_TABS_BEFORE_WORKSPACE = [
 
 const BASE_TABS_AFTER_WORKSPACE = [
   { to: '/app/billing', label: 'Billing' },
+  { to: '/app/refer', label: 'Refer' },
   { to: '/app/account', label: 'Account' },
 ];
 
