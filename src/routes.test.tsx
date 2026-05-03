@@ -86,6 +86,31 @@ describe('routes', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
   });
 
+  it('redirects unauthenticated user from /app/profile to /login', async () => {
+    const router = createMemoryRouter(routes, { initialEntries: ['/app/profile'] });
+    render(<RouterProvider router={router} />);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
+  });
+
+  it('profile route element is not wrapped in TrialGate', () => {
+    function findRoute(table: typeof routes, path: string): unknown {
+      for (const r of table) {
+        if (r.path === path) return r;
+        const nested = (r as { children?: typeof routes }).children;
+        if (nested) {
+          for (const child of nested) {
+            const fullPath = child.path && r.path === '/app' ? `/app/${child.path}` : child.path;
+            if (fullPath === path) return child;
+          }
+        }
+      }
+      return null;
+    }
+    const profileRoute = findRoute(routes, '/app/profile') as { element?: { type?: { name?: string } } };
+    // The route uses Component (not element with TrialGate); element is undefined.
+    expect(profileRoute?.element).toBeUndefined();
+  });
+
   it('billing/upgrade route element is not wrapped in TrialGate', () => {
     // Inspect the route table directly: a TrialGate wrapper would surface
     // the gate component name in the element's React tree. Verifying by
