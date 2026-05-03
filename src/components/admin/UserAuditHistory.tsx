@@ -123,8 +123,8 @@ export function UserAuditHistory({ userId, refreshTick = 0 }: Props) {
             <AuditRow
               key={row.id}
               row={row}
-              expanded={expanded[row.id] === true}
-              onToggle={() => toggle(row.id)}
+              expanded={expanded[String(row.id)] === true}
+              onToggle={() => toggle(String(row.id))}
             />
           ))}
         </tbody>
@@ -151,9 +151,9 @@ function AuditRow({ row, expanded, onToggle }: RowProps) {
         <td style={tdStyle}>
           <code style={codeStyle}>{row.action}</code>
         </td>
-        <td style={tdStyle}>{row.actor_email ?? 'system'}</td>
+        <td style={tdStyle}>{row.actor_id ?? 'system'}</td>
         <td style={{ ...tdStyle, color: 'var(--color-text-dim)' }}>
-          {row.reason ?? ''}
+          {row.metadata.reason ?? ''}
         </td>
       </tr>
       {expanded && (
@@ -162,11 +162,11 @@ function AuditRow({ row, expanded, onToggle }: RowProps) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div>
                 <p style={diffHeaderStyle}>Before</p>
-                <pre style={preStyle}>{prettyJson(row.before)}</pre>
+                <pre style={preStyle}>{prettyJson(row.metadata.before)}</pre>
               </div>
               <div>
                 <p style={diffHeaderStyle}>After</p>
-                <pre style={preStyle}>{prettyJson(row.after)}</pre>
+                <pre style={preStyle}>{prettyJson(row.metadata.after)}</pre>
               </div>
             </div>
           </td>
