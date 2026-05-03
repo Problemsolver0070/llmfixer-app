@@ -21,6 +21,7 @@ import { ApiError } from '@/lib/api';
 
 const paypalCreateSubscription = vi.fn();
 const paypalOnApprove = vi.fn();
+const paypalDispatch = vi.fn();
 vi.mock('@paypal/react-paypal-js', () => ({
   PayPalButtons: (props: { createSubscription?: unknown; onApprove?: unknown; disabled?: boolean }) => {
     paypalCreateSubscription.mockImplementation(props.createSubscription as never);
@@ -40,6 +41,9 @@ vi.mock('@paypal/react-paypal-js', () => ({
       </button>
     );
   },
+  usePayPalScriptReducer: () => [{ isInitial: false }, paypalDispatch],
+  DISPATCH_ACTION: { LOADING_STATUS: 'setLoadingStatus' },
+  SCRIPT_LOADING_STATE: { INITIAL: 'initial', PENDING: 'pending', RESOLVED: 'resolved', REJECTED: 'rejected' },
 }));
 
 vi.mock('@/hooks/usePlans', () => ({

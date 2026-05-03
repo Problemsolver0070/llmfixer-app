@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { PayPalButtons } from '@paypal/react-paypal-js';
+import {
+  DISPATCH_ACTION,
+  PayPalButtons,
+  SCRIPT_LOADING_STATE,
+  usePayPalScriptReducer,
+} from '@paypal/react-paypal-js';
 import { CadenceToggle, type Cadence } from '@/components/pricing/CadenceToggle';
 import { PlanPicker } from '@/components/pricing/PlanPicker';
 import { CascadeCancelDialog } from '@/components/workspace/CascadeCancelDialog';
@@ -27,6 +32,20 @@ export default function BillingUpgrade() {
   const { data: account, refresh: refreshAccount } = useAccount();
   const { changePlan, activate } = useSubscription();
   const { workspace } = useWorkspace();
+  const [{ isInitial }, paypalDispatch] = usePayPalScriptReducer();
+
+  // The app-level PayPalScriptProvider runs with deferLoading=true so the
+  // SDK script is not pulled on every authenticated page. Wake it up the
+  // moment the upgrade page mounts; without this, <PayPalButtons /> never
+  // renders (its effect early-returns while loadingStatus stays INITIAL).
+  useEffect(() => {
+    if (isInitial) {
+      paypalDispatch({
+        type: DISPATCH_ACTION.LOADING_STATUS,
+        value: SCRIPT_LOADING_STATE.PENDING,
+      });
+    }
+  }, [isInitial, paypalDispatch]);
 
   const initialSku = params.get('plan') ?? account?.user.plan_id ?? 'solo-weekly';
   const initialCadence = (initialSku.split('-')[1] ?? 'weekly') as Cadence;
