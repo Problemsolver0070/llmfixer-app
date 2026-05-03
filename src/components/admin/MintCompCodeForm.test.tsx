@@ -118,7 +118,7 @@ describe('MintCompCodeForm', () => {
 
   it('switches to batch mode and posts to /batch with count', async () => {
     apiMock.mockResolvedValueOnce({
-      rows: [
+      codes: [
         {
           id: 'b1',
           code: 'CODE001',
