@@ -7,6 +7,34 @@ vi.mock('@/hooks/useAccount', () => ({ useAccount: () => useAccount() }));
 vi.mock('@/lib/supabase', () => ({
   supabase: { auth: { signOut: vi.fn() } },
 }));
+// TrialBanner is rendered inside AppShell; stub its hooks so the test
+// stays focused on shell behaviour and does not need real API mocks.
+vi.mock('@/hooks/useUserMe', () => ({
+  useUserMe: () => ({
+    data: null,
+    loading: false,
+    error: null,
+    isEligibleToRefer: false,
+    hasActiveSubscription: false,
+    inDemoWindow: false,
+    inTrialWindow: false,
+    hasAccess: false,
+    refresh: vi.fn(),
+  }),
+}));
+vi.mock('@/hooks/useSubscription', () => ({
+  useSubscription: () => ({
+    subscription: null,
+    loading: false,
+    activate: vi.fn(),
+    cancel: vi.fn(),
+    redeem: vi.fn(),
+    changePlan: vi.fn(),
+  }),
+}));
+vi.mock('@/hooks/usePlans', () => ({
+  usePlans: () => ({ plans: [], loading: false, error: null, refresh: vi.fn() }),
+}));
 
 import { AppShell } from './AppShell';
 
