@@ -29,6 +29,7 @@ import AdminUsers from '@/pages/app/admin/Users';
 import AdminMetrics from '@/pages/app/admin/Metrics';
 import AdminCodes from '@/pages/app/admin/Codes';
 import AdminAgents from '@/pages/app/admin/Agents';
+import AdminAuditLog from '@/pages/app/admin/AuditLog';
 
 const placeholder = (label: string) => () => (
   <div style={{ padding: 24 }}>
@@ -77,6 +78,7 @@ export const routes: RouteObject[] = [
           { path: 'codes', Component: AdminCodes },
           { path: 'agents', Component: AdminAgents },
           { path: 'metrics', Component: AdminMetrics },
+          { path: 'audit-log', Component: AdminAuditLog },
         ],
       },
     ],
