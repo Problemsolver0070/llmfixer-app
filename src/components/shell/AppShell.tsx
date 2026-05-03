@@ -4,6 +4,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Brand } from './Brand';
 import { ChatNavLink } from './ChatNavLink';
 import { UserMenu } from './UserMenu';
+import { TrialBanner } from '@/components/trial/TrialBanner';
 import { useAccount } from '@/hooks/useAccount';
 import {
   AppShellWidthContext,
@@ -20,6 +21,8 @@ const BASE_TABS_BEFORE_WORKSPACE = [
 
 const BASE_TABS_AFTER_WORKSPACE = [
   { to: '/app/billing', label: 'Billing' },
+  { to: '/app/refer', label: 'Refer' },
+  { to: '/app/profile', label: 'Profile' },
   { to: '/app/account', label: 'Account' },
 ];
 
@@ -82,6 +85,7 @@ export function AppShell({ width: initialWidth = 'narrow', children }: Props) {
           {data && <UserMenu email={data.user.email} />}
         </header>
         <main className="app-shell-main" data-width={width}>
+          <TrialBanner />
           {children}
         </main>
       </div>
