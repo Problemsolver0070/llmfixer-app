@@ -10,6 +10,7 @@ import SignUp from '@/pages/public/SignUp';
 import Forgot from '@/pages/public/Forgot';
 import Reset from '@/pages/public/Reset';
 import VerifyEmail from '@/pages/public/VerifyEmail';
+import RecoveryRedeem from '@/pages/public/RecoveryRedeem';
 import Pricing from '@/pages/public/Pricing';
 import PricingEnterprise from '@/pages/public/PricingEnterprise';
 import Dashboard from '@/pages/app/Dashboard';
@@ -45,6 +46,7 @@ export const routes: RouteObject[] = [
   { path: '/forgot', Component: Forgot },
   { path: '/reset', Component: Reset },
   { path: '/verify-email', Component: VerifyEmail },
+  { path: '/recovery', Component: RecoveryRedeem },
   { path: '/pricing', Component: Pricing },
   { path: '/pricing/enterprise', Component: PricingEnterprise },
   {

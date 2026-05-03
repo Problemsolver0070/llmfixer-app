@@ -4,6 +4,8 @@ import QRCode from 'qrcode';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { RecoveryCodes } from '@/components/account/RecoveryCodes';
+import { mintRecoveryCodes, type MintResponse } from '@/hooks/useMfaRecovery';
 import { supabase } from '@/lib/supabase';
 
 interface EnrolledFactor {
@@ -50,6 +52,7 @@ export default function Security() {
   const [success, setSuccess] = useState<string | null>(null);
   const [confirmDisable, setConfirmDisable] = useState<string | null>(null);
   const [disableLoading, setDisableLoading] = useState(false);
+  const [autoMint, setAutoMint] = useState<MintResponse | null>(null);
 
   const reload = useCallback(async () => {
     setLoadError(null);
@@ -139,11 +142,24 @@ export default function Security() {
       setCode('');
       setSuccess('MFA enabled.');
       await reload();
+      // Mint recovery codes immediately. The user just proved they
+      // hold the TOTP factor (aal2 is satisfied), so this call has the
+      // right session level. We surface the codes through the
+      // RecoveryCodes panel below; failure here is non-fatal because
+      // the user can hit "Regenerate codes" later.
+      try {
+        const minted = await mintRecoveryCodes();
+        setAutoMint(minted);
+      } catch {
+        // Swallowed: TOTP enrollment still succeeded.
+      }
       if (returnPath && returnPath.startsWith('/app/')) {
-        // Give the user a beat to read the confirmation, then bounce back.
+        // Give the user a beat to read the confirmation AND save the
+        // recovery codes before we bounce back to the admin page that
+        // sent them here.
         setTimeout(() => {
           window.location.assign(returnPath);
-        }, 600);
+        }, 1500);
       }
     } catch (err) {
       setVerifyError(errorMessage(err));
@@ -284,7 +300,8 @@ export default function Security() {
 
         {verifiedFactor && !pending && (
           <div style={{ marginTop: 14 }}>
-            <p style={{ fontSize: 14, color: 'var(--color-text)', margin: '0 0 6px' }}>
+            <RecoveryCodes initialMint={autoMint} />
+            <p style={{ fontSize: 14, color: 'var(--color-text)', margin: '18px 0 6px' }}>
               MFA enabled.
             </p>
             <p
