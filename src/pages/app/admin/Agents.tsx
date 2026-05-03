@@ -182,10 +182,10 @@ function AgentList({
                   textAlign: 'left',
                   padding: '12px 16px',
                   background: active ? 'var(--color-bg)' : 'transparent',
+                  border: 0,
                   borderLeft: active
                     ? '2px solid var(--color-link)'
                     : '2px solid transparent',
-                  border: 0,
                   borderBottom: '1px solid var(--color-border)',
                   cursor: 'pointer',
                   display: 'flex',
