@@ -9,28 +9,33 @@ import { UserAuditHistory } from './UserAuditHistory';
 
 const sampleRows = [
   {
-    id: 'a-1',
+    id: 1,
     created_at: '2026-05-01T12:00:00Z',
-    actor_user_id: 'admin-1',
-    actor_email: 'admin@thefixer.in',
+    actor_id: 'admin-1',
     action: 'user.comp',
-    target_type: 'user',
-    target_id: 'u-1',
-    reason: 'apology',
-    before: { comp_until: null },
-    after: { comp_until: '2026-05-08T00:00:00Z' },
+    target_user_id: 'u-1',
+    paypal_event_id: null,
+    metadata: {
+      target_type: 'user',
+      target_id: 'u-1',
+      reason: 'apology',
+      before: { comp_until: null },
+      after: { comp_until: '2026-05-08T00:00:00Z' },
+    },
   },
   {
-    id: 'a-2',
+    id: 2,
     created_at: '2026-05-01T13:00:00Z',
-    actor_user_id: null,
-    actor_email: null,
+    actor_id: null,
     action: 'user.cron.warning',
-    target_type: 'user',
-    target_id: 'u-1',
-    reason: null,
-    before: null,
-    after: { warned_at: '2026-05-01T13:00:00Z' },
+    target_user_id: 'u-1',
+    paypal_event_id: null,
+    metadata: {
+      target_type: 'user',
+      target_id: 'u-1',
+      before: null,
+      after: { warned_at: '2026-05-01T13:00:00Z' },
+    },
   },
 ];
 
@@ -45,7 +50,7 @@ describe('UserAuditHistory', () => {
       '/v1/admin/audit-log?target_type=user&target_id=u-1&limit=50&offset=0',
     );
     expect(screen.getByText('user.comp')).toBeInTheDocument();
-    expect(screen.getByText('admin@thefixer.in')).toBeInTheDocument();
+    expect(screen.getByText('admin-1')).toBeInTheDocument();
     expect(screen.getByText('system')).toBeInTheDocument();
   });
 
@@ -62,7 +67,7 @@ describe('UserAuditHistory', () => {
     render(<UserAuditHistory userId="u-1" />);
     await waitFor(() => expect(screen.getByText('user.comp')).toBeInTheDocument());
     await userEvent.click(screen.getByText('user.comp'));
-    const expanded = await screen.findByTestId('audit-row-a-1-expanded');
+    const expanded = await screen.findByTestId('audit-row-1-expanded');
     expect(expanded).toBeInTheDocument();
     // The expanded row contains the before / after JSON snapshots; both
     // include "comp_until" so we just check the expanded content directly.
