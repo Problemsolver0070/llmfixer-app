@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { MintCompCodeForm } from '@/components/admin/MintCompCodeForm';
 import { CompCodesList } from '@/components/admin/CompCodesList';
+import { MintDiscountCodeForm } from '@/components/admin/MintDiscountCodeForm';
+import { DiscountCodesList } from '@/components/admin/DiscountCodesList';
 
 type Tab = 'paid' | 'discount';
 
 export default function Codes() {
   const [tab, setTab] = useState<Tab>('paid');
-  const [refreshTick, setRefreshTick] = useState(0);
+  const [paidRefresh, setPaidRefresh] = useState(0);
+  const [discountRefresh, setDiscountRefresh] = useState(0);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -71,23 +74,37 @@ export default function Codes() {
               <code style={{ margin: '0 4px' }}>comp_until</code> elapses.
               Workspace SKUs are out of scope for v1.
             </p>
-            <MintCompCodeForm onMinted={() => setRefreshTick((n) => n + 1)} />
+            <MintCompCodeForm onMinted={() => setPaidRefresh((n) => n + 1)} />
           </Card>
 
-          <CompCodesList refreshTick={refreshTick} />
+          <CompCodesList refreshTick={paidRefresh} />
         </>
       ) : (
-        <Card>
-          <p
-            style={{
-              fontSize: 13,
-              color: 'var(--color-text-dim)',
-              margin: 0,
-            }}
-          >
-            Discount codes (post-charge credit ledger) ship in R5. Coming soon.
-          </p>
-        </Card>
+        <>
+          <Card>
+            <h2 style={{ fontSize: 14, fontWeight: 400, margin: '0 0 16px' }}>
+              Mint discount code
+            </h2>
+            <p
+              style={{
+                fontSize: 12,
+                color: 'var(--color-text-dim)',
+                margin: '0 0 16px',
+              }}
+            >
+              Discount codes apply at checkout. The user picks a plan, applies
+              the code, and the percentage off is realized as a
+              <code style={{ margin: '0 4px' }}>comp_until</code> push on the
+              first paid charge. Leave applies-to blank to allow every plan
+              (solo + workspace).
+            </p>
+            <MintDiscountCodeForm
+              onMinted={() => setDiscountRefresh((n) => n + 1)}
+            />
+          </Card>
+
+          <DiscountCodesList refreshTick={discountRefresh} />
+        </>
       )}
     </div>
   );

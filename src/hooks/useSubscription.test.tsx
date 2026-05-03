@@ -29,6 +29,35 @@ describe('useSubscription', () => {
     expect(refreshAccount).toHaveBeenCalled();
   });
 
+  it('activate forwards a non-empty discount_code into the body', async () => {
+    apiCall.mockResolvedValue({});
+    const { result } = renderHook(() => useSubscription());
+    await act(async () => {
+      await result.current.activate('I-99', 'solo-monthly', 1, 'PROMO10');
+    });
+    expect(apiCall).toHaveBeenCalledWith('/v1/billing/subscriptions/activate', {
+      method: 'POST',
+      body: {
+        paypal_sub_id: 'I-99',
+        plan_id: 'solo-monthly',
+        seat_count: 1,
+        discount_code: 'PROMO10',
+      },
+    });
+  });
+
+  it('activate omits discount_code when blank/whitespace', async () => {
+    apiCall.mockResolvedValue({});
+    const { result } = renderHook(() => useSubscription());
+    await act(async () => {
+      await result.current.activate('I-99', 'solo-weekly', 1, '   ');
+    });
+    expect(apiCall).toHaveBeenCalledWith('/v1/billing/subscriptions/activate', {
+      method: 'POST',
+      body: { paypal_sub_id: 'I-99', plan_id: 'solo-weekly', seat_count: 1 },
+    });
+  });
+
   it('cancel posts to cancel and refreshes', async () => {
     apiCall.mockResolvedValue({ account: {} });
     const { result } = renderHook(() => useSubscription());
