@@ -74,7 +74,7 @@ describe('SignUpForm', () => {
     expect(signUp).not.toHaveBeenCalled();
   });
 
-  it('signs up with the dashboard redirect, full_name, and shows the inline success state', async () => {
+  it('signs up with the post-signup redirect, full_name, and shows the inline success state', async () => {
     signUp.mockResolvedValue({
       data: { user: { id: 'u1', email: 'a@b.c' }, session: null },
       error: null,
@@ -86,7 +86,7 @@ describe('SignUpForm', () => {
       email: 'a@b.c',
       password: 'longenough',
       options: {
-        emailRedirectTo: expect.stringMatching(/\/app\/dashboard$/),
+        emailRedirectTo: expect.stringMatching(/\/app\/post-signup$/),
         data: { full_name: 'Ada Lovelace' },
       },
     });
@@ -131,7 +131,7 @@ describe('SignUpForm', () => {
     expect(resend).toHaveBeenCalledWith({
       type: 'signup',
       email: 'a@b.c',
-      options: { emailRedirectTo: expect.stringMatching(/\/app\/dashboard$/) },
+      options: { emailRedirectTo: expect.stringMatching(/\/app\/post-signup$/) },
     });
     await waitFor(() => expect(screen.getByText(/new link sent/i)).toBeInTheDocument());
   });

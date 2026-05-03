@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { api, ApiError } from '@/lib/api';
 import { resolveNextDestination } from '@/lib/next-redirect';
 
-const dashboardRedirect = () => `${window.location.origin}/app/dashboard`;
+const dashboardRedirect = () => `${window.location.origin}/app/post-signup`;
 
 const inviteAcceptRedirect = (token: string) =>
   `${window.location.origin}/app/workspace/accept?token=${encodeURIComponent(token)}`;

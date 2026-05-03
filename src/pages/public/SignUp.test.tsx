@@ -62,7 +62,7 @@ describe('SignUp page', () => {
     );
   });
 
-  it('falls back to the dashboard redirect when no invite token is present', async () => {
+  it('falls back to the post-signup redirect when no invite token is present', async () => {
     signUp.mockResolvedValue({
       data: { user: { id: 'u1', email: 'a@b.c' }, session: null },
       error: null,
@@ -75,7 +75,7 @@ describe('SignUp page', () => {
     expect(signUp).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
-          emailRedirectTo: expect.stringMatching(/\/app\/dashboard$/),
+          emailRedirectTo: expect.stringMatching(/\/app\/post-signup$/),
         }),
       }),
     );
