@@ -1639,6 +1639,195 @@ button {
   .workspace-table td:nth-child(2) { display: none; }
 }
 
+/* TrialGate wall (R4 T4.4). Calm, terminal-editorial: F. monogram,
+   Fraunces serif title, mono body, copper accent on the primary CTA.
+   No exclamation points, no em-dashes, short sentences. Rendered when
+   the caller has no demo, trial, or active subscription. */
+.trial-gate {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 96px 28px 80px;
+  text-align: center;
+}
+.trial-gate-monogram {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 56px;
+  line-height: 1;
+  color: var(--color-accent-copper);
+  margin: 0 0 28px;
+}
+.trial-gate-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-variation-settings: 'opsz' 96;
+  font-size: clamp(24px, 3.4vw, 32px);
+  letter-spacing: -0.01em;
+  line-height: 1.18;
+  color: var(--color-text);
+  margin: 0 0 16px;
+}
+.trial-gate-body {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--color-text-dim);
+  margin: 0 auto 28px;
+  max-width: 48ch;
+}
+.trial-gate-actions {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 22px;
+}
+.trial-gate-cta {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-copper-bright);
+  border: 1px solid var(--color-accent-copper);
+  padding: 10px 18px;
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.trial-gate-cta:hover,
+.trial-gate-cta:focus-visible {
+  color: var(--color-bg);
+  background: var(--color-accent-copper-bright);
+  border-color: var(--color-accent-copper-bright);
+}
+.trial-gate-secondary {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-dim);
+  margin: 0;
+}
+.trial-gate-secondary-link {
+  background: transparent;
+  border: 0;
+  padding: 0 0 1px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-accent-copper-bright);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.trial-gate-secondary-link:hover {
+  border-bottom-color: var(--color-accent-copper);
+}
+.trial-gate-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 24px;
+}
+.trial-gate-modal {
+  background: var(--color-bg-elev);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  width: 100%;
+  max-width: 420px;
+  padding: 24px 26px;
+  font-family: var(--font-mono);
+}
+.trial-gate-modal-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--color-text);
+  margin: 0 0 10px;
+}
+.trial-gate-modal-body {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--color-text-dim);
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+.trial-gate-modal-input {
+  width: 100%;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 9px 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  border-radius: 0;
+  outline: none;
+}
+.trial-gate-modal-input:focus {
+  border-color: var(--color-accent-copper);
+}
+.trial-gate-modal-error {
+  margin: 8px 0 0;
+  color: var(--color-danger);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.trial-gate-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+  align-items: baseline;
+}
+.trial-gate-modal-cancel {
+  background: transparent;
+  border: 0;
+  padding: 0 0 1px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-dim);
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.trial-gate-modal-cancel:hover:not(:disabled) {
+  color: var(--color-text);
+  border-bottom-color: var(--color-text-dim);
+}
+.trial-gate-modal-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.trial-gate-modal-submit {
+  background: transparent;
+  border: 1px solid var(--color-accent-copper-bright);
+  color: var(--color-accent-copper-bright);
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  border-radius: 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.trial-gate-modal-submit:hover:not(:disabled) {
+  color: var(--color-bg);
+  background: var(--color-accent-copper-bright);
+}
+.trial-gate-modal-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (max-width: 600px) {
+  .trial-gate { padding: 64px 20px 48px; }
+}
+
 /* Cascade-cancel pre-flight dialog (Plan A.2.b, Task 16). Fired from
    /app/billing when an admin clicks Cancel or Change-to-Solo while the
    workspace has active members. Terminal-editorial: Fraunces italic title,
