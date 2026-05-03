@@ -21,6 +21,7 @@ import BillingUpgrade from '@/pages/app/BillingUpgrade';
 import Workspace from '@/pages/app/Workspace';
 import WorkspaceAccept from '@/pages/app/WorkspaceAccept';
 import Account from '@/pages/app/Account';
+import Profile from '@/pages/app/Profile';
 import AdminPromos from '@/pages/app/admin/Promos';
 import AdminUsers from '@/pages/app/admin/Users';
 import AdminMetrics from '@/pages/app/admin/Metrics';
@@ -59,6 +60,7 @@ export const routes: RouteObject[] = [
       { path: 'billing', Component: Billing },
       { path: 'billing/upgrade', element: <BillingUpgrade /> },
       { path: 'account', Component: Account },
+      { path: 'profile', Component: Profile },
       {
         path: 'admin',
         element: <RequireAdmin><AdminLayout /></RequireAdmin>,
