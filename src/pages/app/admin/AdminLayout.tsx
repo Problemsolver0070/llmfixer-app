@@ -7,6 +7,7 @@ const tabs = [
   { to: '/app/admin/agents', label: 'Agents' },
   { to: '/app/admin/metrics', label: 'Metrics' },
   { to: '/app/admin/audit-log', label: 'Audit log' },
+  { to: '/app/admin/system', label: 'System' },
 ];
 
 export function AdminLayout() {
