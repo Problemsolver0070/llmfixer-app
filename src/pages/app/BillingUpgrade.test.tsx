@@ -1,7 +1,23 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+
+vi.mock('@/lib/api', () => {
+  class ApiError extends Error {
+    status: number;
+    body: unknown;
+    constructor(status: number, body: unknown, message?: string) {
+      super(message ?? `API error ${status}`);
+      this.status = status;
+      this.body = body;
+    }
+  }
+  return { ApiError };
+});
+
 import BillingUpgrade from './BillingUpgrade';
+import { ApiError } from '@/lib/api';
 
 const paypalCreateSubscription = vi.fn();
 const paypalOnApprove = vi.fn();
@@ -120,7 +136,7 @@ describe('BillingUpgrade', () => {
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
     fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
-    await waitFor(() => expect(activate).toHaveBeenCalledWith('SUB-NEW', 'solo-weekly', 1));
+    await waitFor(() => expect(activate).toHaveBeenCalledWith('SUB-NEW', 'solo-weekly', 1, null));
   });
 
   it('drives PayPal createSubscription with TIERED quantity for workspace plans', async () => {
@@ -130,6 +146,91 @@ describe('BillingUpgrade', () => {
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=workspace-monthly"]}><BillingUpgrade /></MemoryRouter>);
     expect(screen.getByText(/4 seats/)).toBeInTheDocument();
     fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
-    await waitFor(() => expect(activate).toHaveBeenCalledWith('SUB-NEW', 'workspace-monthly', 4));
+    await waitFor(() => expect(activate).toHaveBeenCalledWith('SUB-NEW', 'workspace-monthly', 4, null));
+  });
+
+  it('passes the discount code to activate when filled in', async () => {
+    activate.mockClear();
+    activate.mockResolvedValueOnce(undefined);
+    useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+    useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+    render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+    const field = screen.getByLabelText(/discount code/i);
+    await userEvent.type(field, 'PROMO10');
+    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
+    await waitFor(() =>
+      expect(activate).toHaveBeenCalledWith('SUB-NEW', 'solo-weekly', 1, 'PROMO10'),
+    );
+  });
+
+  it('uppercases the discount code as the user types', async () => {
+    useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+    useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+    render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+    const field = screen.getByLabelText(/discount code/i) as HTMLInputElement;
+    await userEvent.type(field, 'promo30');
+    expect(field.value).toBe('PROMO30');
+  });
+
+  it('surfaces discount_code_not_found inline below the discount field, not as the activate-level error', async () => {
+    activate.mockClear();
+    activate.mockRejectedValueOnce(
+      new ApiError(400, {
+        detail: { error_code: 'discount_code_not_found', message: 'no such code' },
+      }),
+    );
+    useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+    useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+    render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+    await userEvent.type(screen.getByLabelText(/discount code/i), 'BADCODE');
+    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
+    await waitFor(() => {
+      const alerts = screen.getAllByRole('alert');
+      const found = alerts.some((el) =>
+        /couldn't find that code/i.test(el.textContent ?? ''),
+      );
+      expect(found).toBe(true);
+    });
+    // The activate-level generic error block must not have rendered.
+    expect(screen.queryByText(/^error:/i)).toBeNull();
+  });
+
+  it('surfaces discount_code_not_applicable_to_plan inline', async () => {
+    activate.mockClear();
+    activate.mockRejectedValueOnce(
+      new ApiError(400, {
+        detail: {
+          error_code: 'discount_code_not_applicable_to_plan',
+          message: 'wrong plan',
+        },
+      }),
+    );
+    useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+    useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+    render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+    await userEvent.type(screen.getByLabelText(/discount code/i), 'WRONGSKU');
+    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
+    const alert = await screen.findByText(/doesn't apply to the plan/i);
+    expect(alert).toBeInTheDocument();
+  });
+
+  it('clears the inline discount error when the user edits the field again', async () => {
+    activate.mockClear();
+    activate.mockRejectedValueOnce(
+      new ApiError(400, {
+        detail: { error_code: 'discount_code_expired', message: 'expired' },
+      }),
+    );
+    useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+    useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+    render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+    const field = screen.getByLabelText(/discount code/i);
+    await userEvent.type(field, 'OLDCODE');
+    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
+    await screen.findByText(/code has expired/i);
+    await userEvent.type(field, 'X');
+    await waitFor(() => {
+      expect(screen.queryByText(/code has expired/i)).toBeNull();
+    });
   });
 });
