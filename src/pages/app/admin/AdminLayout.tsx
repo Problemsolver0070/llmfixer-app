@@ -3,6 +3,7 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 const tabs = [
   { to: '/app/admin/promos', label: 'Promos' },
   { to: '/app/admin/users', label: 'Users' },
+  { to: '/app/admin/codes', label: 'Codes' },
   { to: '/app/admin/metrics', label: 'Metrics' },
 ];
 
