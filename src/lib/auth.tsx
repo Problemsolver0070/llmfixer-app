@@ -88,7 +88,11 @@ function RequireAdminInner({ children }: { children: ReactNode }) {
 
   if (loading) return null;
   if (!isAdmin) return <Navigate to="/no-such-page" replace />;
-  if (mfa.loading) return null;
+  // Guard the transitional render where useAccount just finished but the
+  // useAdminMfaGate effect has not run yet: state is still { loading: false,
+  // aal: null }. Without aal !== null, we'd false-redirect to /security on
+  // every fresh mount of an admin route.
+  if (mfa.loading || mfa.aal === null) return null;
 
   const here = encodeURIComponent(location.pathname + location.search);
 
