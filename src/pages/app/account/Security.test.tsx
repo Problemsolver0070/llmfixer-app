@@ -29,6 +29,24 @@ vi.mock('qrcode', () => ({
   },
 }));
 
+// The recovery codes panel mounted by Security.tsx hits the backend
+// for status + mint. Stub the helpers so the existing Security tests
+// don't need to reason about the recovery flow.
+vi.mock('@/hooks/useMfaRecovery', () => ({
+  mintRecoveryCodes: vi.fn().mockResolvedValue({
+    codes: [],
+    minted_at: '2026-05-03T00:00:00Z',
+    invalidated_count: 0,
+  }),
+  fetchRecoveryStatus: vi.fn().mockResolvedValue({ remaining: 0, last_minted_at: null }),
+  useMfaRecoveryStatus: () => ({
+    status: { remaining: 0, last_minted_at: null },
+    loading: false,
+    error: null,
+    reload: vi.fn(),
+  }),
+}));
+
 import Security from './Security';
 
 function renderAt(path = '/app/account/security') {
