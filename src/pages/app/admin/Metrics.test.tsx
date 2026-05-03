@@ -4,15 +4,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const useAdminMetrics = vi.fn();
-vi.mock('@/hooks/useAdminMetrics', async () => {
-  const actual = await vi.importActual<
-    typeof import('@/hooks/useAdminMetrics')
-  >('@/hooks/useAdminMetrics');
-  return {
-    ...actual,
-    useAdminMetrics: () => useAdminMetrics(),
-  };
-});
+vi.mock('@/hooks/useAdminMetrics', () => ({
+  useAdminMetrics: () => useAdminMetrics(),
+  METRICS_POLL_INTERVAL_MS: 60_000,
+}));
 
 import Metrics from './Metrics';
 
