@@ -53,19 +53,22 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: /keys/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /billing/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^profile$/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^refer$/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^account$/i })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /admin/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /workspace/i })).not.toBeInTheDocument();
   });
 
-  it('places the Profile tab between Billing and Account', () => {
+  it('orders Refer / Profile between Billing and Account', () => {
     shell();
     const links = screen.getAllByRole('link').map((a) => a.textContent);
     const billingIdx = links.indexOf('Billing');
+    const referIdx = links.indexOf('Refer');
     const profileIdx = links.indexOf('Profile');
     const accountIdx = links.indexOf('Account');
     expect(billingIdx).toBeGreaterThanOrEqual(0);
-    expect(profileIdx).toBe(billingIdx + 1);
+    expect(referIdx).toBe(billingIdx + 1);
+    expect(profileIdx).toBe(referIdx + 1);
     expect(accountIdx).toBe(profileIdx + 1);
   });
 
