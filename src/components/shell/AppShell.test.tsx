@@ -52,9 +52,21 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: /models/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /keys/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /billing/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^refer$/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /account/i })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /admin/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /workspace/i })).not.toBeInTheDocument();
+  });
+
+  it('places the Refer tab between Billing and Account', () => {
+    shell();
+    const links = screen.getAllByRole('link').map((a) => a.textContent);
+    const billingIdx = links.indexOf('Billing');
+    const referIdx = links.indexOf('Refer');
+    const accountIdx = links.indexOf('Account');
+    expect(billingIdx).toBeGreaterThanOrEqual(0);
+    expect(referIdx).toBe(billingIdx + 1);
+    expect(accountIdx).toBe(referIdx + 1);
   });
 
   it('shows the Admin tab when role is admin', () => {
