@@ -1,6 +1,18 @@
-export function Brand({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
+import { Link } from 'react-router-dom';
+
+export function Brand({
+  size = 'sm',
+  to = '/app/dashboard',
+}: {
+  size?: 'sm' | 'lg';
+  to?: string;
+}) {
   return (
-    <div className="flex items-center gap-2.5">
+    <Link
+      to={to}
+      className="flex items-center gap-2.5"
+      style={{ textDecoration: 'none', color: 'inherit' }}
+    >
       <span
         data-testid="brand-dot"
         className="h-2 w-2 rounded-full"
@@ -16,6 +28,6 @@ export function Brand({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
       >
         The Fixer
       </span>
-    </div>
+    </Link>
   );
 }

@@ -125,7 +125,7 @@ describe('BillingUpgrade', () => {
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
     expect(screen.getByText(/Pick a plan/)).toBeInTheDocument();
-    expect(screen.getByText(/Start with a 2-day free trial/)).toBeInTheDocument();
+    expect(screen.getByText(/Start with a 24-hour free trial/)).toBeInTheDocument();
     expect(screen.getByTestId('paypal-buttons-mock')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /confirm change/i })).not.toBeInTheDocument();
   });

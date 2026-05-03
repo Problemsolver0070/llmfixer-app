@@ -124,7 +124,7 @@ export default function Pricing() {
             period={soloParts.period}
             tagline={SOLO_TAGLINE}
             features={SOLO_FEATURES}
-            ctaLabel="Start 48-hour trial"
+            ctaLabel="Start 24-hour trial"
             onCtaClick={() => startTrial('solo')}
           />
           <TierCard
@@ -134,7 +134,7 @@ export default function Pricing() {
             tagline={WORKSPACE_TAGLINE}
             features={WORKSPACE_FEATURES}
             extraSeat={extraSeatParts(workspace)}
-            ctaLabel="Start 48-hour trial"
+            ctaLabel="Start 24-hour trial"
             onCtaClick={() => startTrial('workspace')}
           />
           <TierCard

@@ -87,7 +87,7 @@ export default function BillingUpgrade() {
   const headerTitle = hasSubscription ? 'Change plan' : 'Pick a plan';
   const headerSub = hasSubscription
     ? 'Pick a different tier or cadence. Pro-rated by PayPal automatically.'
-    : 'Start with a 2-day free trial. Cancel anytime before the trial ends and you will not be charged.';
+    : 'Start with a 24-hour free trial. Cancel anytime before the trial ends and you will not be charged.';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
