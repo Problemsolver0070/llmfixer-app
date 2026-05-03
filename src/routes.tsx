@@ -28,6 +28,7 @@ import AdminPromos from '@/pages/app/admin/Promos';
 import AdminUsers from '@/pages/app/admin/Users';
 import AdminMetrics from '@/pages/app/admin/Metrics';
 import AdminCodes from '@/pages/app/admin/Codes';
+import AdminAgents from '@/pages/app/admin/Agents';
 
 const placeholder = (label: string) => () => (
   <div style={{ padding: 24 }}>
@@ -74,6 +75,7 @@ export const routes: RouteObject[] = [
           { path: 'promos', Component: AdminPromos },
           { path: 'users', Component: AdminUsers },
           { path: 'codes', Component: AdminCodes },
+          { path: 'agents', Component: AdminAgents },
           { path: 'metrics', Component: AdminMetrics },
         ],
       },
