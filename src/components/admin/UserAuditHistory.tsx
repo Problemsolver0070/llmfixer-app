@@ -2,7 +2,7 @@ import { type CSSProperties, useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import {
   useAdminAuditLog,
-  type AdminAuditLogRow,
+  type AuditLogRow,
 } from '@/hooks/useAdminAuditLog';
 
 interface Props {
@@ -134,7 +134,7 @@ export function UserAuditHistory({ userId, refreshTick = 0 }: Props) {
 }
 
 interface RowProps {
-  row: AdminAuditLogRow;
+  row: AuditLogRow;
   expanded: boolean;
   onToggle: () => void;
 }
