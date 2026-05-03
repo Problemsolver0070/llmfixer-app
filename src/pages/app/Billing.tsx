@@ -4,15 +4,18 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { RedeemPromoForm } from '@/components/forms/RedeemPromoForm';
+import { RedeemCodeForm } from '@/components/billing/RedeemCodeForm';
 import { CascadeCancelDialog } from '@/components/workspace/CascadeCancelDialog';
 import { useAccount } from '@/hooks/useAccount';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useUserMe } from '@/hooks/useUserMe';
 import { useWorkspace } from '@/hooks/useWorkspace';
 import { formatDateTime } from '@/lib/format';
 
 export default function Billing() {
-  const { data, loading } = useAccount();
+  const { data, loading, refresh: refreshAccount } = useAccount();
   const { subscription, cancel, redeem } = useSubscription();
+  const { refresh: refreshUserMe } = useUserMe();
   const { workspace } = useWorkspace();
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cascadeOpen, setCascadeOpen] = useState(false);
@@ -62,6 +65,14 @@ export default function Billing() {
             Subscription ends {formatDateTime(u.cancels_at)}.
           </p>
         )}
+      </Card>
+
+      <Card>
+        <RedeemCodeForm
+          onRedeemed={async () => {
+            await Promise.all([refreshAccount(), refreshUserMe()]);
+          }}
+        />
       </Card>
 
       {showSubscribe ? (
