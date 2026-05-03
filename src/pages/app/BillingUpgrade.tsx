@@ -4,10 +4,16 @@ import { PayPalButtons } from '@paypal/react-paypal-js';
 import { CadenceToggle, type Cadence } from '@/components/pricing/CadenceToggle';
 import { PlanPicker } from '@/components/pricing/PlanPicker';
 import { CascadeCancelDialog } from '@/components/workspace/CascadeCancelDialog';
+import { DiscountCodeField } from '@/components/billing/DiscountCodeField';
+import {
+  isKnownDiscountErrorCode,
+  type DiscountCodeErrorCode,
+} from '@/components/billing/discountCodeErrors';
 import { usePlans } from '@/hooks/usePlans';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAccount } from '@/hooks/useAccount';
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { ApiError } from '@/lib/api';
 
 function paypalQuantityForSku(sku: string, seatCount: number): number {
   if (sku.startsWith('solo-')) return 1;
@@ -30,6 +36,22 @@ export default function BillingUpgrade() {
   const [seatCount, setSeatCount] = useState<number>(account?.user.seat_count ?? 1);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [cascadeOpen, setCascadeOpen] = useState(false);
+  const [discountCode, setDiscountCode] = useState<string>('');
+  const [discountErrorCode, setDiscountErrorCode] =
+    useState<DiscountCodeErrorCode | null>(null);
+
+  function extractDiscountErrorCode(err: unknown): DiscountCodeErrorCode | null {
+    if (!(err instanceof ApiError)) return null;
+    const body = err.body;
+    if (body && typeof body === 'object') {
+      const detail = (body as { detail?: unknown }).detail;
+      if (detail && typeof detail === 'object') {
+        const code = (detail as { error_code?: unknown }).error_code;
+        if (isKnownDiscountErrorCode(code)) return code;
+      }
+    }
+    return null;
+  }
 
   if (plansLoading) return <p style={{ color: 'var(--color-text-dim)' }}>Loading plans...</p>;
 
@@ -115,6 +137,15 @@ export default function BillingUpgrade() {
             Subscribing to <strong style={{ color: 'var(--color-text)' }}>{selectedPlan.display_price}</strong>
             {tier === 'workspace' ? <> with <strong style={{ color: 'var(--color-text)' }}>{seats} seats</strong> ({paypalQuantityForSku(sku, seats)}x PayPal qty)</> : null}
           </p>
+          <DiscountCodeField
+            value={discountCode}
+            onChange={(next) => {
+              setDiscountCode(next);
+              if (discountErrorCode) setDiscountErrorCode(null);
+            }}
+            errorCode={discountErrorCode}
+            disabled={submitting === 'subscribing'}
+          />
           <PayPalButtons
             key={`${sku}-${seats}`}
             style={{ layout: 'horizontal', shape: 'rect', color: 'silver', label: 'subscribe' }}
@@ -127,12 +158,20 @@ export default function BillingUpgrade() {
             }
             onApprove={async (data) => {
               setSubmitting('subscribing');
+              setDiscountErrorCode(null);
               try {
                 if (!data.subscriptionID) throw new Error('paypal_no_subscription_id');
-                await activate(data.subscriptionID, sku, seats);
+                const trimmed = discountCode.trim();
+                await activate(data.subscriptionID, sku, seats, trimmed || null);
                 await refreshAccount();
                 navigate('/app/billing');
               } catch (e) {
+                const discountErr = extractDiscountErrorCode(e);
+                if (discountErr) {
+                  setDiscountErrorCode(discountErr);
+                  setSubmitting(null);
+                  return;
+                }
                 setSubmitting(`error: ${e instanceof Error ? e.message : String(e)}`);
               }
             }}
