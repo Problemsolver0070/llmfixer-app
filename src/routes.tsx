@@ -33,6 +33,7 @@ import AdminCodes from '@/pages/app/admin/Codes';
 import AdminAgents from '@/pages/app/admin/Agents';
 import AdminAuditLog from '@/pages/app/admin/AuditLog';
 import AdminSystemHealth from '@/pages/app/admin/SystemHealth';
+import AdminComms from '@/pages/app/admin/Comms';
 
 const placeholder = (label: string) => () => (
   <div style={{ padding: 24 }}>
@@ -85,6 +86,7 @@ export const routes: RouteObject[] = [
           { path: 'metrics', Component: AdminMetrics },
           { path: 'audit-log', Component: AdminAuditLog },
           { path: 'system', Component: AdminSystemHealth },
+          { path: 'comms', Component: AdminComms },
         ],
       },
     ],
