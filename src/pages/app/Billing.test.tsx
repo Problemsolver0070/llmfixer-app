@@ -9,6 +9,19 @@ import { useWorkspace } from '@/hooks/useWorkspace';
 vi.mock('@/hooks/useAccount', () => ({ useAccount: vi.fn() }));
 vi.mock('@/hooks/useSubscription', () => ({ useSubscription: vi.fn() }));
 vi.mock('@/hooks/useWorkspace', () => ({ useWorkspace: vi.fn() }));
+vi.mock('@/hooks/useUserMe', () => ({
+  useUserMe: () => ({
+    data: null,
+    loading: false,
+    error: null,
+    isEligibleToRefer: false,
+    hasActiveSubscription: false,
+    inDemoWindow: false,
+    inTrialWindow: false,
+    hasAccess: false,
+    refresh: vi.fn(),
+  }),
+}));
 vi.mock('@/lib/supabase', () => ({ supabase: { auth: { getSession: vi.fn(), signOut: vi.fn() } } }));
 vi.mock('@/lib/api', () => ({
   ApiError: class ApiError extends Error {
