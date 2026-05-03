@@ -23,6 +23,7 @@ import WorkspaceAccept from '@/pages/app/WorkspaceAccept';
 import Account from '@/pages/app/Account';
 import Profile from '@/pages/app/Profile';
 import Refer from '@/pages/app/Refer';
+import Security from '@/pages/app/account/Security';
 import AdminPromos from '@/pages/app/admin/Promos';
 import AdminUsers from '@/pages/app/admin/Users';
 import AdminMetrics from '@/pages/app/admin/Metrics';
@@ -62,6 +63,7 @@ export const routes: RouteObject[] = [
       { path: 'billing/upgrade', element: <BillingUpgrade /> },
       { path: 'refer', Component: Refer },
       { path: 'account', Component: Account },
+      { path: 'account/security', Component: Security },
       { path: 'profile', Component: Profile },
       {
         path: 'admin',

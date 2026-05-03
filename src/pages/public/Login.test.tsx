@@ -71,4 +71,13 @@ describe('Login page', () => {
     await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
     await waitFor(() => expect(screen.getByTestId('accept-page')).toBeInTheDocument());
   });
+
+  it('shows the expired banner when ?expired=1 is present', async () => {
+    renderAt('/login?expired=1');
+    await waitFor(() =>
+      expect(
+        screen.getByText(/your admin session expired\. sign in again\./i),
+      ).toBeInTheDocument(),
+    );
+  });
 });

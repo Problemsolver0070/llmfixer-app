@@ -5,11 +5,19 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const signInWithPassword = vi.fn();
 const resend = vi.fn();
+const listFactors = vi.fn();
+const challenge = vi.fn();
+const verifyMfa = vi.fn();
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       signInWithPassword: (args: unknown) => signInWithPassword(args),
       resend: (args: unknown) => resend(args),
+      mfa: {
+        listFactors: () => listFactors(),
+        challenge: (a: unknown) => challenge(a),
+        verify: (a: unknown) => verifyMfa(a),
+      },
     },
   },
 }));
@@ -37,6 +45,9 @@ describe('SignInForm', () => {
   beforeEach(() => {
     signInWithPassword.mockReset();
     resend.mockReset();
+    listFactors.mockReset();
+    challenge.mockReset();
+    verifyMfa.mockReset();
     navigate.mockReset();
   });
 
@@ -166,6 +177,76 @@ describe('SignInForm', () => {
       await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
       await waitFor(() => expect(navigate).toHaveBeenCalledWith('/app/dashboard'));
       expect(assigned).toBeNull();
+    });
+  });
+
+  describe('mfa_required step-up', () => {
+    it('challenges and verifies the totp code, then routes to ?return=', async () => {
+      signInWithPassword.mockResolvedValue({ data: {}, error: null });
+      listFactors.mockResolvedValue({
+        data: {
+          all: [
+            {
+              id: 'factor-1',
+              factor_type: 'totp',
+              status: 'verified',
+              created_at: '2026-05-03T00:00:00Z',
+            },
+          ],
+        },
+        error: null,
+      });
+      challenge.mockResolvedValue({ data: { id: 'chal-1' }, error: null });
+      verifyMfa.mockResolvedValue({ data: {}, error: null });
+
+      renderForm('/login?mfa_required=1&return=%2Fapp%2Fadmin%2Fpromos');
+      await userEvent.type(screen.getByLabelText(/email/i), 'admin@x.com');
+      await userEvent.type(screen.getByLabelText(/password/i), 'secret123');
+      await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+      await waitFor(() => expect(challenge).toHaveBeenCalledWith({ factorId: 'factor-1' }));
+      await screen.findByLabelText(/6-digit code/i);
+      await userEvent.type(screen.getByLabelText(/6-digit code/i), '424242');
+      await userEvent.click(screen.getByRole('button', { name: /verify/i }));
+
+      await waitFor(() =>
+        expect(verifyMfa).toHaveBeenCalledWith({
+          factorId: 'factor-1',
+          challengeId: 'chal-1',
+          code: '424242',
+        }),
+      );
+      await waitFor(() => expect(navigate).toHaveBeenCalledWith('/app/admin/promos'));
+    });
+
+    it('shows an error on bad totp code', async () => {
+      signInWithPassword.mockResolvedValue({ data: {}, error: null });
+      listFactors.mockResolvedValue({
+        data: {
+          all: [
+            {
+              id: 'factor-1',
+              factor_type: 'totp',
+              status: 'verified',
+              created_at: '2026-05-03T00:00:00Z',
+            },
+          ],
+        },
+        error: null,
+      });
+      challenge.mockResolvedValue({ data: { id: 'chal-1' }, error: null });
+      verifyMfa.mockResolvedValue({ data: null, error: { message: 'Invalid TOTP code' } });
+
+      renderForm('/login?mfa_required=1&return=%2Fapp%2Fadmin');
+      await userEvent.type(screen.getByLabelText(/email/i), 'admin@x.com');
+      await userEvent.type(screen.getByLabelText(/password/i), 'secret123');
+      await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+      await screen.findByLabelText(/6-digit code/i);
+      await userEvent.type(screen.getByLabelText(/6-digit code/i), '000000');
+      await userEvent.click(screen.getByRole('button', { name: /verify/i }));
+      await waitFor(() =>
+        expect(screen.getByRole('alert')).toHaveTextContent(/invalid code/i),
+      );
     });
   });
 });
