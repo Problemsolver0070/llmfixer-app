@@ -7,6 +7,34 @@ vi.mock('@/hooks/useAccount', () => ({ useAccount: () => useAccount() }));
 vi.mock('@/lib/supabase', () => ({
   supabase: { auth: { signOut: vi.fn() } },
 }));
+// TrialBanner is rendered inside AppShell; stub its hooks so the test
+// stays focused on shell behaviour and does not need real API mocks.
+vi.mock('@/hooks/useUserMe', () => ({
+  useUserMe: () => ({
+    data: null,
+    loading: false,
+    error: null,
+    isEligibleToRefer: false,
+    hasActiveSubscription: false,
+    inDemoWindow: false,
+    inTrialWindow: false,
+    hasAccess: false,
+    refresh: vi.fn(),
+  }),
+}));
+vi.mock('@/hooks/useSubscription', () => ({
+  useSubscription: () => ({
+    subscription: null,
+    loading: false,
+    activate: vi.fn(),
+    cancel: vi.fn(),
+    redeem: vi.fn(),
+    changePlan: vi.fn(),
+  }),
+}));
+vi.mock('@/hooks/usePlans', () => ({
+  usePlans: () => ({ plans: [], loading: false, error: null, refresh: vi.fn() }),
+}));
 
 import { AppShell } from './AppShell';
 
@@ -52,9 +80,24 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: /models/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /keys/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /billing/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /account/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^profile$/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^refer$/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^account$/i })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /admin/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /workspace/i })).not.toBeInTheDocument();
+  });
+
+  it('orders Refer / Profile between Billing and Account', () => {
+    shell();
+    const links = screen.getAllByRole('link').map((a) => a.textContent);
+    const billingIdx = links.indexOf('Billing');
+    const referIdx = links.indexOf('Refer');
+    const profileIdx = links.indexOf('Profile');
+    const accountIdx = links.indexOf('Account');
+    expect(billingIdx).toBeGreaterThanOrEqual(0);
+    expect(referIdx).toBe(billingIdx + 1);
+    expect(profileIdx).toBe(referIdx + 1);
+    expect(accountIdx).toBe(profileIdx + 1);
   });
 
   it('shows the Admin tab when role is admin', () => {

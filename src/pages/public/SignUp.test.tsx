@@ -14,6 +14,19 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
+vi.mock('@/lib/api', () => ({
+  ApiError: class ApiError extends Error {
+    status: number;
+    body: unknown;
+    constructor(status: number, body: unknown, message?: string) {
+      super(message ?? `API error ${status}`);
+      this.status = status;
+      this.body = body;
+    }
+  },
+  api: vi.fn(),
+}));
+
 import SignUp from './SignUp';
 
 function renderAt(initialEntry: string) {
@@ -36,6 +49,7 @@ describe('SignUp page', () => {
       error: null,
     });
     renderAt('/signup?invite=TOKEN-X');
+    await userEvent.type(screen.getByLabelText(/^name$/i), 'Ben');
     await userEvent.type(screen.getByLabelText(/email/i), 'ben@acme.io');
     await userEvent.type(screen.getByLabelText(/password/i), 'long-password-123');
     await userEvent.click(screen.getByRole('button', { name: /create account/i }));
@@ -48,19 +62,20 @@ describe('SignUp page', () => {
     );
   });
 
-  it('falls back to the dashboard redirect when no invite token is present', async () => {
+  it('falls back to the post-signup redirect when no invite token is present', async () => {
     signUp.mockResolvedValue({
       data: { user: { id: 'u1', email: 'a@b.c' }, session: null },
       error: null,
     });
     renderAt('/signup');
+    await userEvent.type(screen.getByLabelText(/^name$/i), 'Ada');
     await userEvent.type(screen.getByLabelText(/email/i), 'a@b.c');
     await userEvent.type(screen.getByLabelText(/password/i), 'longenough');
     await userEvent.click(screen.getByRole('button', { name: /create account/i }));
     expect(signUp).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
-          emailRedirectTo: expect.stringMatching(/\/app\/dashboard$/),
+          emailRedirectTo: expect.stringMatching(/\/app\/post-signup$/),
         }),
       }),
     );
@@ -72,6 +87,7 @@ describe('SignUp page', () => {
       error: null,
     });
     renderAt('/signup?invite=tok%2Fwith%20space');
+    await userEvent.type(screen.getByLabelText(/^name$/i), 'Ada');
     await userEvent.type(screen.getByLabelText(/email/i), 'a@b.c');
     await userEvent.type(screen.getByLabelText(/password/i), 'longenough');
     await userEvent.click(screen.getByRole('button', { name: /create account/i }));
