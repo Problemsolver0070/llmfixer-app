@@ -1176,7 +1176,10 @@ button {
   .cadence-toggle { margin-bottom: 48px; gap: 24px; flex-wrap: wrap; }
 }
 
-/* Dashboard trial banner for unsubscribed users. */
+/* Trial-status banner for unsubscribed users (T5.3 + dashboard fallback).
+   Calm, copper-tinted notice that lives at the top of every authenticated
+   page. The icon column carries the hourglass glyph, the copy column the
+   countdown + body, and the optional CTA aligns to the trailing edge. */
 .trial-banner {
   display: flex;
   align-items: center;
@@ -1184,15 +1187,33 @@ button {
   gap: 16px;
   padding: 14px 18px;
   border: 1px solid var(--color-accent-copper-dim);
+  background: rgba(201, 123, 58, 0.05);
   margin-bottom: 24px;
   font-family: var(--font-mono);
   font-size: 13px;
+}
+.trial-banner-icon {
+  flex: 0 0 auto;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--color-accent-copper);
+}
+.trial-banner-copy {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .trial-banner-title {
   color: var(--color-text);
   font-style: italic;
   font-family: var(--font-display);
   font-size: 18px;
+}
+.trial-banner-value {
+  font-family: var(--font-mono);
+  font-style: normal;
+  color: var(--color-accent-copper-bright);
+  font-size: 14px;
+  letter-spacing: 0.04em;
 }
 .trial-banner-sub {
   color: var(--color-text-dim);
