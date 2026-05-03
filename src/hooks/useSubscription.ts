@@ -44,10 +44,23 @@ export function useSubscription() {
   }, [fetchSubscription]);
 
   const activate = useCallback(
-    async (paypalSubId: string, planId = 'solo-weekly', seatCount = 1) => {
+    async (
+      paypalSubId: string,
+      planId = 'solo-weekly',
+      seatCount = 1,
+      discountCode: string | null = null,
+    ) => {
+      const body: {
+        paypal_sub_id: string;
+        plan_id: string;
+        seat_count: number;
+        discount_code?: string;
+      } = { paypal_sub_id: paypalSubId, plan_id: planId, seat_count: seatCount };
+      const trimmed = discountCode?.trim();
+      if (trimmed) body.discount_code = trimmed;
       await api('/v1/billing/subscriptions/activate', {
         method: 'POST',
-        body: { paypal_sub_id: paypalSubId, plan_id: planId, seat_count: seatCount },
+        body,
       });
       await refresh();
       await fetchSubscription();
