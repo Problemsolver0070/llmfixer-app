@@ -1,5 +1,7 @@
 import { Navigate, Outlet, type RouteObject } from 'react-router-dom';
 import { RequireAuth, RequireAdmin } from '@/lib/auth';
+import { TrialGate } from '@/components/auth/TrialGate';
+import { PostSignupGate } from '@/components/auth/PostSignupGate';
 import { AppShell } from '@/components/shell/AppShell';
 import { AdminLayout } from '@/pages/app/admin/AdminLayout';
 import Landing from '@/pages/public/Landing';
@@ -47,10 +49,11 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <Navigate to="/app/dashboard" replace /> },
+      { path: 'post-signup', element: <PostSignupGate /> },
       { path: 'dashboard', Component: Dashboard },
-      { path: 'setup', Component: Setup },
-      { path: 'models', Component: Models },
-      { path: 'keys', Component: Keys },
+      { path: 'setup', element: <TrialGate><Setup /></TrialGate> },
+      { path: 'models', element: <TrialGate><Models /></TrialGate> },
+      { path: 'keys', element: <TrialGate><Keys /></TrialGate> },
       { path: 'workspace', Component: Workspace },
       { path: 'workspace/accept', Component: WorkspaceAccept },
       { path: 'billing', Component: Billing },
