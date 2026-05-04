@@ -23,6 +23,9 @@ export default function Billing() {
   if (loading || !data) return <p style={{ color: 'var(--color-text-dim)' }}>Loading...</p>;
   const u = data.user;
   const showSubscribe = ['trial', 'trial_expired', 'cancelled', 'expired'].includes(u.status);
+  // Plan card surfaces the active SKU + change-plan link for paying users
+  // and the comp window + subscribe-to-paid link for comp recipients.
+  const showPlanCard = (u.status === 'active' || u.status === 'comped') && Boolean(u.plan_id);
 
   const memberOnlyCount = (workspace?.members ?? []).filter((m) => !m.is_admin).length;
   const isWorkspaceAdminTier =
@@ -59,6 +62,9 @@ export default function Billing() {
           {subscription?.next_billing_time && (
             <>, next charge {formatDateTime(subscription.next_billing_time)}</>
           )}
+          {u.status === 'comped' && u.comp_until && (
+            <>, comped through {formatDateTime(u.comp_until)}</>
+          )}
         </p>
         {u.cancels_at && (
           <p style={{ fontSize: 12, color: 'var(--color-danger)', margin: 0 }}>
@@ -79,16 +85,21 @@ export default function Billing() {
         </Card>
       ) : null}
 
-      {u.status === 'active' && u.plan_id ? (
+      {showPlanCard ? (
         <Card>
           <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: '0 0 12px' }}>
             Plan
           </p>
           <p style={{ fontSize: 14, color: 'var(--color-text)', margin: '0 0 12px' }}>
             <span className="code-id" style={{ color: 'var(--color-accent-copper-bright)' }}>{u.plan_id}</span>
-            {' '}with {u.seat_count} seat{u.seat_count === 1 ? '' : 's'}.
+            {' '}with {u.seat_count} seat{u.seat_count === 1 ? '' : 's'}
+            {u.status === 'comped' && u.comp_until
+              ? ` (comped through ${formatDateTime(u.comp_until)})`
+              : '.'}
           </p>
-          <Link to="/app/billing/upgrade" className="trial-banner-cta">Change plan &rarr;</Link>
+          <Link to="/app/billing/upgrade" className="trial-banner-cta">
+            {u.status === 'comped' ? 'Subscribe to a paid plan' : 'Change plan'} &rarr;
+          </Link>
         </Card>
       ) : null}
 

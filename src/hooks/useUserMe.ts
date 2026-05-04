@@ -23,6 +23,9 @@ export interface UserMeData {
   has_active_subscription: boolean;
   in_demo_window: boolean;
   in_trial_window: boolean;
+  in_comp_window: boolean;
+  comp_until: string | null;
+  plan_id: string | null;
 }
 
 export interface UseUserMeResult {
@@ -33,7 +36,8 @@ export interface UseUserMeResult {
   hasActiveSubscription: boolean;
   inDemoWindow: boolean;
   inTrialWindow: boolean;
-  /** True iff at least one of the three access windows is open. */
+  inCompWindow: boolean;
+  /** True iff at least one of the four access windows is open. */
   hasAccess: boolean;
   refresh: () => Promise<void>;
 }
@@ -93,7 +97,9 @@ export function useUserMe(): UseUserMeResult {
   const hasActiveSubscription = Boolean(data?.has_active_subscription);
   const inDemoWindow = Boolean(data?.in_demo_window);
   const inTrialWindow = Boolean(data?.in_trial_window);
-  const hasAccess = hasActiveSubscription || inDemoWindow || inTrialWindow;
+  const inCompWindow = Boolean(data?.in_comp_window);
+  const hasAccess =
+    hasActiveSubscription || inDemoWindow || inTrialWindow || inCompWindow;
 
   return {
     data,
@@ -103,6 +109,7 @@ export function useUserMe(): UseUserMeResult {
     hasActiveSubscription,
     inDemoWindow,
     inTrialWindow,
+    inCompWindow,
     hasAccess,
     refresh: fetchOnce,
   };

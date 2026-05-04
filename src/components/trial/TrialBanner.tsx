@@ -33,7 +33,14 @@ import { formatDuration, minutesUntil } from '@/lib/duration';
  * red, no shake/blink animations.
  */
 export function TrialBanner() {
-  const { data, hasActiveSubscription, inDemoWindow, inTrialWindow, refresh } = useUserMe();
+  const {
+    data,
+    hasActiveSubscription,
+    inDemoWindow,
+    inTrialWindow,
+    inCompWindow,
+    refresh,
+  } = useUserMe();
   const { subscription } = useSubscription();
   const { plans } = usePlans();
   const { data: account } = useAccount();
@@ -69,6 +76,11 @@ export function TrialBanner() {
 
   if (hasActiveSubscription) return null;
   if (!data) return null; // signed out or pre-fetch; nothing useful to show
+
+  // Comped users have access via `users.comp_until`. The TrialGate already
+  // lets them through; suppress the "access paused" banner so they are not
+  // told to add a card while their comp is still running.
+  if (inCompWindow) return null;
 
   if (inDemoWindow && data.demo_expires_at) {
     return (
