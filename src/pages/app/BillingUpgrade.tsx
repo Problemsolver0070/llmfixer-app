@@ -66,18 +66,26 @@ export default function BillingUpgrade() {
     }
   }
 
-  const isComped = account?.user.status === 'comped';
+  // Two-tier model: status='active' covers BOTH PayPal subscribers AND
+  // code/hosted-button buyers (paypal_sub_id NULL, comp_until set).
+  // The page treats them differently because the second group has no
+  // PayPal subscription to /revise; their only action is starting a
+  // recurring subscription on top, which ends their comp window early.
+  const isCompAccess =
+    account?.user.status === 'active'
+    && !account.user.paypal_sub_id
+    && Boolean(account.user.comp_until);
   const compUntil = account?.user.comp_until ?? null;
   const compPlanId = account?.user.plan_id ?? null;
   const headerTitle = hasSubscription
     ? 'Change plan'
-    : isComped
-      ? 'Switch to a paid plan'
+    : isCompAccess
+      ? 'Switch to a recurring subscription'
       : 'Pick a plan';
   const headerSub = hasSubscription
     ? 'Pick a different tier or cadence. Pro-rated by PayPal automatically.'
-    : isComped
-      ? 'Optional. Your comp covers you for now, this is only for switching to a paid subscription.'
+    : isCompAccess
+      ? 'Optional. Your access is paid through the date below, this is only for moving to a recurring subscription.'
       : 'Start with a 24-hour free trial. Cancel anytime before the trial ends and you will not be charged.';
 
   return (
@@ -89,9 +97,9 @@ export default function BillingUpgrade() {
         <p style={{ color: 'var(--color-text-dim)', fontSize: 13, margin: '8px 0 0' }}>{headerSub}</p>
       </header>
 
-      {isComped && compUntil ? (
+      {isCompAccess && compUntil ? (
         <div style={{ border: '1px solid var(--color-border)', padding: '10px 14px', fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--color-text-dim)' }}>
-          You're on {compPlanId ?? 'a comped plan'}, comped through{' '}
+          You're on {compPlanId ?? 'a paid plan'}, paid through{' '}
           <strong style={{ color: 'var(--color-text)' }}>{new Date(compUntil).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>.
           {' '}You don't need to pick a plan to keep your access.
         </div>
