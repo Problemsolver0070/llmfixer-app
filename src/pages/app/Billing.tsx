@@ -23,9 +23,12 @@ export default function Billing() {
   if (loading || !data) return <p style={{ color: 'var(--color-text-dim)' }}>Loading...</p>;
   const u = data.user;
   const showSubscribe = ['trial', 'trial_expired', 'cancelled', 'expired'].includes(u.status);
-  // Plan card surfaces the active SKU + change-plan link for paying users
-  // and the comp window + subscribe-to-paid link for comp recipients.
-  const showPlanCard = (u.status === 'active' || u.status === 'comped') && Boolean(u.plan_id);
+  // Two-tier model: status='active' covers BOTH PayPal subscribers AND
+  // code/hosted-button buyers (paypal_sub_id NULL, comp_until set).
+  // The Plan card and the optional "switch to paid" CTA differ between
+  // the two; we branch on `isCompAccess` (active without a PayPal sub).
+  const showPlanCard = u.status === 'active' && Boolean(u.plan_id);
+  const isCompAccess = u.status === 'active' && !u.paypal_sub_id && Boolean(u.comp_until);
 
   const memberOnlyCount = (workspace?.members ?? []).filter((m) => !m.is_admin).length;
   const isWorkspaceAdminTier =
@@ -62,8 +65,8 @@ export default function Billing() {
           {subscription?.next_billing_time && (
             <>, next charge {formatDateTime(subscription.next_billing_time)}</>
           )}
-          {u.status === 'comped' && u.comp_until && (
-            <>, comped through {formatDateTime(u.comp_until)}</>
+          {isCompAccess && u.comp_until && (
+            <>, paid through {formatDateTime(u.comp_until)}</>
           )}
         </p>
         {u.cancels_at && (
@@ -93,17 +96,17 @@ export default function Billing() {
           <p style={{ fontSize: 14, color: 'var(--color-text)', margin: '0 0 12px' }}>
             <span className="code-id" style={{ color: 'var(--color-accent-copper-bright)' }}>{u.plan_id}</span>
             {' '}with {u.seat_count} seat{u.seat_count === 1 ? '' : 's'}
-            {u.status === 'comped' && u.comp_until
-              ? ` (comped through ${formatDateTime(u.comp_until)})`
+            {isCompAccess && u.comp_until
+              ? ` (paid through ${formatDateTime(u.comp_until)})`
               : '.'}
           </p>
           <Link to="/app/billing/upgrade" className="trial-banner-cta">
-            {u.status === 'comped' ? 'Subscribe to a paid plan' : 'Change plan'} &rarr;
+            {isCompAccess ? 'Switch to a recurring subscription' : 'Change plan'} &rarr;
           </Link>
         </Card>
       ) : null}
 
-      {u.status === 'active' && !u.cancels_at && (
+      {u.status === 'active' && Boolean(u.paypal_sub_id) && !u.cancels_at && (
         <Card>
           <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: '0 0 12px' }}>
             Cancel
