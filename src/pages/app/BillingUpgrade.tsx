@@ -1,144 +1,29 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  DISPATCH_ACTION,
-  PayPalCardFieldsProvider,
-  PayPalNumberField,
-  PayPalExpiryField,
-  PayPalCVVField,
-  PayPalNameField,
-  SCRIPT_LOADING_STATE,
-  usePayPalCardFields,
-  usePayPalScriptReducer,
-} from '@paypal/react-paypal-js';
+import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { CadenceToggle, type Cadence } from '@/components/pricing/CadenceToggle';
 import { PlanPicker } from '@/components/pricing/PlanPicker';
 import { CascadeCancelDialog } from '@/components/workspace/CascadeCancelDialog';
-import { DiscountCodeField } from '@/components/billing/DiscountCodeField';
-import {
-  isKnownDiscountErrorCode,
-  type DiscountCodeErrorCode,
-} from '@/components/billing/discountCodeErrors';
+import { HostedPaypalButton } from '@/components/billing/HostedPaypalButton';
 import { usePlans } from '@/hooks/usePlans';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAccount } from '@/hooks/useAccount';
 import { useWorkspace } from '@/hooks/useWorkspace';
-import { api, ApiError } from '@/lib/api';
 
-function paypalQuantityForSku(sku: string, seatCount: number): number {
-  if (sku.startsWith('solo-')) return 1;
-  return 1 + Math.max(0, seatCount - 4);
-}
-
-function CardFieldsForm({ submitting }: { submitting: boolean }) {
-  const { cardFieldsForm } = usePayPalCardFields();
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <PayPalNameField
-        style={{
-          input: {
-            color: '#E6EAF2',
-            'font-family': "'JetBrains Mono', monospace",
-            'font-size': '13px',
-            padding: '10px 12px',
-          },
-          '.invalid': { color: '#E26B6B' },
-        }}
-      />
-      <PayPalNumberField
-        style={{
-          input: {
-            color: '#E6EAF2',
-            'font-family': "'JetBrains Mono', monospace",
-            'font-size': '13px',
-            padding: '10px 12px',
-          },
-          '.invalid': { color: '#E26B6B' },
-        }}
-      />
-      <div style={{ display: 'flex', gap: 10 }}>
-        <PayPalExpiryField
-          style={{
-            input: {
-              color: '#E6EAF2',
-              'font-family': "'JetBrains Mono', monospace",
-              'font-size': '13px',
-              padding: '10px 12px',
-            },
-            '.invalid': { color: '#E26B6B' },
-          }}
-        />
-        <PayPalCVVField
-          style={{
-            input: {
-              color: '#E6EAF2',
-              'font-family': "'JetBrains Mono', monospace",
-              'font-size': '13px',
-              padding: '10px 12px',
-            },
-            '.invalid': { color: '#E26B6B' },
-          }}
-        />
-      </div>
-      <button
-        type="button"
-        disabled={submitting}
-        onClick={async () => {
-          setSubmitError(null);
-          try {
-            await cardFieldsForm?.submit();
-          } catch (e) {
-            setSubmitError(e instanceof Error ? e.message : 'card_fields_submit_failed');
-          }
-        }}
-        style={{
-          background: 'var(--color-accent-copper)',
-          color: 'var(--color-bg)',
-          border: 0,
-          padding: '12px 16px',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 12,
-          letterSpacing: '0.14em',
-          textTransform: 'uppercase',
-          cursor: submitting ? 'not-allowed' : 'pointer',
-        }}
-      >
-        {submitting ? 'Subscribing...' : 'Pay and start trial'}
-      </button>
-      {submitError && (
-        <p style={{ color: 'var(--color-danger)', fontSize: 12 }}>{submitError}</p>
-      )}
-      <p style={{ color: 'var(--color-text-dim)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
-        Card details stay on PayPal's hosted form. We never see your card number.
-      </p>
-    </div>
-  );
-}
+// SKU -> PayPal Hosted Button id. Each entry is a button created in
+// the PayPal merchant dashboard ("Manage Hosted Buttons"). Only the
+// SKUs listed here can be self-served from /app/billing/upgrade;
+// other SKUs render a "contact support" notice. Add new entries when
+// the corresponding hosted buttons exist on PayPal's side.
+const HOSTED_BUTTON_BY_SKU: Record<string, string> = {
+  'solo-weekly': '27X5L7LRWJCUJ',
+};
 
 export default function BillingUpgrade() {
   const [params] = useSearchParams();
-  const navigate = useNavigate();
   const { plans, loading: plansLoading } = usePlans();
-  const { data: account, refresh: refreshAccount } = useAccount();
-  const { changePlan, activateWithCard } = useSubscription();
+  const { data: account } = useAccount();
+  const { changePlan } = useSubscription();
   const { workspace } = useWorkspace();
-  const [{ isInitial }, paypalDispatch] = usePayPalScriptReducer();
-
-  // The app-level PayPalScriptProvider runs with deferLoading=true so the
-  // SDK script is not pulled on every authenticated page. Wake it up the
-  // moment the upgrade page mounts; without this, PayPalCardFieldsProvider
-  // sits on its hands waiting for isResolved and renders no iframes, so
-  // the page shows nothing where the card form should be.
-  useEffect(() => {
-    if (isInitial) {
-      paypalDispatch({
-        type: DISPATCH_ACTION.LOADING_STATUS,
-        value: SCRIPT_LOADING_STATE.PENDING,
-      });
-    }
-  }, [isInitial, paypalDispatch]);
 
   const initialSku = params.get('plan') ?? account?.user.plan_id ?? 'solo-weekly';
   const initialCadence = (initialSku.split('-')[1] ?? 'weekly') as Cadence;
@@ -148,22 +33,6 @@ export default function BillingUpgrade() {
   const [seatCount, setSeatCount] = useState<number>(account?.user.seat_count ?? 1);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [cascadeOpen, setCascadeOpen] = useState(false);
-  const [discountCode, setDiscountCode] = useState<string>('');
-  const [discountErrorCode, setDiscountErrorCode] =
-    useState<DiscountCodeErrorCode | null>(null);
-
-  function extractDiscountErrorCode(err: unknown): DiscountCodeErrorCode | null {
-    if (!(err instanceof ApiError)) return null;
-    const body = err.body;
-    if (body && typeof body === 'object') {
-      const detail = (body as { detail?: unknown }).detail;
-      if (detail && typeof detail === 'object') {
-        const code = (detail as { error_code?: unknown }).error_code;
-        if (isKnownDiscountErrorCode(code)) return code;
-      }
-    }
-    return null;
-  }
 
   if (plansLoading) return <p style={{ color: 'var(--color-text-dim)' }}>Loading plans...</p>;
 
@@ -177,6 +46,7 @@ export default function BillingUpgrade() {
     workspace?.viewer_role === 'admin' && (workspace?.plan_id ?? '').startsWith('workspace-');
   const downgradingToSolo = sku.startsWith('solo-') && (currentSku ?? '').startsWith('workspace-');
   const cascadeNeeded = isWorkspaceAdminTier && memberOnlyCount > 0 && downgradingToSolo;
+  const hostedButtonId = HOSTED_BUTTON_BY_SKU[sku];
 
   async function commitChangePlan(): Promise<void> {
     setSubmitting('changing');
@@ -247,49 +117,24 @@ export default function BillingUpgrade() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360 }}>
           <p style={{ color: 'var(--color-text-dim)', fontSize: 12, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', margin: 0 }}>
             Subscribing to <strong style={{ color: 'var(--color-text)' }}>{selectedPlan.display_price}</strong>
-            {tier === 'workspace' ? <> with <strong style={{ color: 'var(--color-text)' }}>{seats} seats</strong> ({paypalQuantityForSku(sku, seats)}x PayPal qty)</> : null}
+            {tier === 'workspace' ? <> with <strong style={{ color: 'var(--color-text)' }}>{seats} seats</strong></> : null}
           </p>
-          <DiscountCodeField
-            value={discountCode}
-            onChange={(next) => {
-              setDiscountCode(next);
-              if (discountErrorCode) setDiscountErrorCode(null);
-            }}
-            errorCode={discountErrorCode}
-            disabled={submitting === 'subscribing'}
-          />
-          <PayPalCardFieldsProvider
-            createVaultSetupToken={async () => {
-              const r = await api<{ setup_token: string }>('/v1/billing/paypal/setup-token', { method: 'POST' });
-              return r.setup_token;
-            }}
-            onApprove={async (data) => {
-              setSubmitting('subscribing');
-              setDiscountErrorCode(null);
-              try {
-                const trimmed = discountCode.trim();
-                await activateWithCard(sku, seats, data.orderID, trimmed || null);
-                await refreshAccount();
-                navigate('/app/billing');
-              } catch (e) {
-                const discountErr = extractDiscountErrorCode(e);
-                if (discountErr) {
-                  setDiscountErrorCode(discountErr);
-                  setSubmitting(null);
-                  return;
-                }
-                setSubmitting(`error: ${e instanceof Error ? e.message : String(e)}`);
-              }
-            }}
-            onError={(err) => {
-              const msg = err && typeof err === 'object' && 'message' in err
-                ? String(err.message)
-                : 'paypal_card_fields_error';
-              setSubmitting(`error: ${msg}`);
-            }}
-          >
-            <CardFieldsForm submitting={submitting === 'subscribing'} />
-          </PayPalCardFieldsProvider>
+          {hostedButtonId ? (
+            <>
+              <HostedPaypalButton hostedButtonId={hostedButtonId} />
+              <p style={{ color: 'var(--color-text-dim)', fontSize: 11, fontFamily: 'var(--font-mono)', margin: 0 }}>
+                Pay with card or PayPal. After payment we will activate your
+                access shortly. If anything looks off, email
+                venu-kumar@thefixer.in.
+              </p>
+            </>
+          ) : (
+            <p style={{ color: 'var(--color-text-dim)', fontSize: 13, margin: 0 }}>
+              The {sku} plan is not available for self-service yet. Pick the
+              weekly solo plan to subscribe today, or email
+              venu-kumar@thefixer.in for a custom invoice.
+            </p>
+          )}
           <Link to="/app/billing" style={{ color: 'var(--color-text-dim)', fontSize: 12, letterSpacing: '0.06em' }}>Cancel</Link>
         </div>
       ) : (
