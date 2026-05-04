@@ -121,12 +121,10 @@ export default function BillingUpgrade() {
           </p>
           {hostedButtonId ? (
             <>
-              <HostedPaypalButton hostedButtonId={hostedButtonId} />
               <p style={{ color: 'var(--color-text-dim)', fontSize: 11, fontFamily: 'var(--font-mono)', margin: 0 }}>
-                Pay with card or PayPal. After payment we will activate your
-                access shortly. If anything looks off, email
-                venu-kumar@thefixer.in.
+                Pay with the email you signed up with.
               </p>
+              <HostedPaypalButton hostedButtonId={hostedButtonId} />
             </>
           ) : (
             <p style={{ color: 'var(--color-text-dim)', fontSize: 13, margin: 0 }}>
