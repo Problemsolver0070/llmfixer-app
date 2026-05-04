@@ -6,6 +6,17 @@ vi.mock('@/hooks/useReferrals', () => ({
   useReferrals: vi.fn(),
 }));
 
+const useAccountMock = vi.fn(() => ({
+  data: { user: { status: 'active' } },
+  loading: false,
+  error: null,
+  hasActiveSubscription: true,
+  refresh: vi.fn(),
+}));
+vi.mock('@/hooks/useAccount', () => ({
+  useAccount: () => useAccountMock(),
+}));
+
 import { useReferrals } from '@/hooks/useReferrals';
 import Refer from './Refer';
 
