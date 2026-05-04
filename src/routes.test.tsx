@@ -47,7 +47,18 @@ vi.mock('@/hooks/useReferrals', () => ({
   useReferrals: () => ({ data: null, loading: false, error: null, refresh: vi.fn() }),
 }));
 vi.mock('@/lib/paypal', () => ({ AppPayPalProvider: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
-vi.mock('@paypal/react-paypal-js', () => ({ PayPalButtons: () => null }));
+vi.mock('@paypal/react-paypal-js', () => ({
+  PayPalCardFieldsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  PayPalNumberField: () => null,
+  PayPalNameField: () => null,
+  PayPalExpiryField: () => null,
+  PayPalCVVField: () => null,
+  usePayPalCardFields: () => ({ cardFieldsForm: null }),
+  PayPalScriptProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+vi.mock('@/hooks/usePayPalClientToken', () => ({
+  usePayPalClientToken: () => ({ clientToken: null, loading: true, error: null }),
+}));
 vi.mock('@/lib/env', () => ({ env: { paypalClientId: 'test', supabaseUrl: 'http://localhost', supabaseAnonKey: 'test', apiBase: 'http://localhost' } }));
 
 import { routes } from './routes';

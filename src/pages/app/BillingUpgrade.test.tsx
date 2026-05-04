@@ -13,39 +13,35 @@ vi.mock('@/lib/api', () => {
       this.body = body;
     }
   }
-  return { ApiError };
+  const api = vi.fn(async (path: string) => {
+    if (path === '/v1/billing/paypal/setup-token') return { setup_token: 'SETUP-TOKEN-1' };
+    if (path === '/v1/billing/subscriptions/activate-with-card') return { account: {} };
+    return {};
+  });
+  return { api, ApiError };
 });
 
 import BillingUpgrade from './BillingUpgrade';
 import { ApiError } from '@/lib/api';
 
-const paypalCreateSubscription = vi.fn();
-const paypalOnApprove = vi.fn();
-const paypalDispatch = vi.fn();
+let onApproveCapture: null | ((data: { orderID: string }) => Promise<void>) = null;
 vi.mock('@paypal/react-paypal-js', () => ({
-  PayPalButtons: (props: { createSubscription?: unknown; onApprove?: unknown; disabled?: boolean; fundingSource?: string }) => {
-    paypalCreateSubscription.mockImplementation(props.createSubscription as never);
-    paypalOnApprove.mockImplementation(props.onApprove as never);
-    const isCard = props.fundingSource === 'card';
-    return (
-      <button
-        type="button"
-        data-testid={isCard ? 'paypal-card-button-mock' : 'paypal-buttons-mock'}
-        disabled={props.disabled}
-        onClick={async () => {
-          const fakeActions = { subscription: { create: vi.fn(async () => 'SUB-NEW') } };
-          await (props.createSubscription as (data: unknown, actions: unknown) => unknown)?.({}, fakeActions);
-          await (props.onApprove as (data: { subscriptionID: string }) => Promise<void>)?.({ subscriptionID: 'SUB-NEW' });
-        }}
-      >
-        {isCard ? 'Pay with Card' : 'PayPal Subscribe'}
-      </button>
-    );
+  PayPalCardFieldsProvider: (props: { createVaultSetupToken?: unknown; onApprove?: unknown; onError?: unknown; children?: unknown }) => {
+    onApproveCapture = props.onApprove as typeof onApproveCapture;
+    return <div data-testid="card-fields-provider">{props.children as React.ReactNode}</div>;
   },
-  usePayPalScriptReducer: () => [{ isInitial: false }, paypalDispatch],
-  DISPATCH_ACTION: { LOADING_STATUS: 'setLoadingStatus' },
-  SCRIPT_LOADING_STATE: { INITIAL: 'initial', PENDING: 'pending', RESOLVED: 'resolved', REJECTED: 'rejected' },
-  FUNDING: { PAYPAL: 'paypal', CARD: 'card' },
+  PayPalNumberField: () => <div data-testid="paypal-number-field" />,
+  PayPalNameField: () => <div data-testid="paypal-name-field" />,
+  PayPalExpiryField: () => <div data-testid="paypal-expiry-field" />,
+  PayPalCVVField: () => <div data-testid="paypal-cvv-field" />,
+  usePayPalCardFields: () => ({
+    cardFieldsForm: {
+      submit: async () => {
+        await onApproveCapture?.({ orderID: 'SETUP-TOKEN-1' });
+      },
+    },
+  }),
+  PayPalScriptProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 vi.mock('@/hooks/usePlans', () => ({
@@ -65,9 +61,9 @@ vi.mock('@/hooks/usePlans', () => ({
   }),
 }));
 const changePlan = vi.fn(async () => {});
-const activate = vi.fn(async () => {});
+const activateWithCard = vi.fn(async () => {});
 vi.mock('@/hooks/useSubscription', () => ({
-  useSubscription: () => ({ subscription: null, loading: false, changePlan, activate, cancel: vi.fn(), redeem: vi.fn() }),
+  useSubscription: () => ({ subscription: null, loading: false, changePlan, activateWithCard, cancel: vi.fn(), redeem: vi.fn() }),
 }));
 const useAccountMock = vi.fn();
 vi.mock('@/hooks/useAccount', () => ({
@@ -76,6 +72,9 @@ vi.mock('@/hooks/useAccount', () => ({
 const useWorkspaceMock = vi.fn();
 vi.mock('@/hooks/useWorkspace', () => ({
   useWorkspace: () => useWorkspaceMock(),
+}));
+vi.mock('@/hooks/usePayPalClientToken', () => ({
+  usePayPalClientToken: () => ({ clientToken: 'test-client-token', loading: false, error: null }),
 }));
 
 const SOLO_ACCOUNT = { data: { user: { id: 'u', email: 'a', status: 'active', plan_id: 'solo-weekly', seat_count: 1, paypal_sub_id: 'SUB-1' }, requests_this_week: 0, active_key_count: 0 }, loading: false, refresh: vi.fn() };
@@ -114,58 +113,59 @@ describe('BillingUpgrade', () => {
       },
     });
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
-    // Pick solo-weekly explicitly via the row.
     fireEvent.click(screen.getByTestId('plan-row-solo-weekly'));
     fireEvent.click(screen.getByRole('button', { name: /confirm change/i }));
-    // Dialog must appear instead of immediately calling changePlan.
     expect(screen.getByText(/End workspace access for 1 member\?/)).toBeInTheDocument();
     expect(screen.getByText(/immediately/)).toBeInTheDocument();
     expect(changePlan).not.toHaveBeenCalled();
-    // Confirm via the dialog destructive button.
     fireEvent.click(screen.getByRole('button', { name: /Downgrade to Solo/i }));
     await waitFor(() => expect(changePlan).toHaveBeenCalledWith('solo-weekly', 1));
   });
 
-  it('renders PayPal Subscribe button when account has no existing subscription', () => {
+  it('renders Card Fields when account has no existing subscription', () => {
     useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
     expect(screen.getByText(/Pick a plan/)).toBeInTheDocument();
     expect(screen.getByText(/Start with a 24-hour free trial/)).toBeInTheDocument();
-    expect(screen.getByTestId('paypal-buttons-mock')).toBeInTheDocument();
+    expect(screen.getByTestId('card-fields-provider')).toBeInTheDocument();
+    expect(screen.getByTestId('paypal-name-field')).toBeInTheDocument();
+    expect(screen.getByTestId('paypal-number-field')).toBeInTheDocument();
+    expect(screen.getByTestId('paypal-expiry-field')).toBeInTheDocument();
+    expect(screen.getByTestId('paypal-cvv-field')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /confirm change/i })).not.toBeInTheDocument();
   });
 
-  it('drives PayPal createSubscription with the picked SKU plan_id and qty=1 for solo', async () => {
-    activate.mockClear();
+  it('calls activateWithCard with the picked SKU and qty=1 for solo on submit', async () => {
+    activateWithCard.mockClear();
     useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
-    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
-    await waitFor(() => expect(activate).toHaveBeenCalledWith('SUB-NEW', 'solo-weekly', 1, null));
+    fireEvent.click(screen.getByRole('button', { name: /pay and start trial/i }));
+    await waitFor(() => expect(activateWithCard).toHaveBeenCalledWith('solo-weekly', 1, 'SETUP-TOKEN-1', null));
   });
 
-  it('drives PayPal createSubscription with TIERED quantity for workspace plans', async () => {
-    activate.mockClear();
+  it('calls activateWithCard with correct seat count for workspace plans', async () => {
+    activateWithCard.mockClear();
     useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=workspace-monthly"]}><BillingUpgrade /></MemoryRouter>);
     expect(screen.getByText(/4 seats/)).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
-    await waitFor(() => expect(activate).toHaveBeenCalledWith('SUB-NEW', 'workspace-monthly', 4, null));
+    fireEvent.click(screen.getByRole('button', { name: /pay and start trial/i }));
+    await waitFor(() => expect(activateWithCard).toHaveBeenCalledWith('workspace-monthly', 4, 'SETUP-TOKEN-1', null));
   });
 
-  it('passes the discount code to activate when filled in', async () => {
-    activate.mockClear();
-    activate.mockResolvedValueOnce(undefined);
+  it('passes the discount code to activateWithCard when filled in', async () => {
+    activateWithCard.mockClear();
+    activateWithCard.mockResolvedValueOnce(undefined);
     useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
     const field = screen.getByLabelText(/discount code/i);
     await userEvent.type(field, 'PROMO10');
-    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
+    fireEvent.click(screen.getByRole('button', { name: /pay and start trial/i }));
     await waitFor(() =>
-      expect(activate).toHaveBeenCalledWith('SUB-NEW', 'solo-weekly', 1, 'PROMO10'),
+      expect(activateWithCard).toHaveBeenCalledWith('solo-weekly', 1, 'SETUP-TOKEN-1', 'PROMO10'),
     );
   });
 
@@ -179,8 +179,8 @@ describe('BillingUpgrade', () => {
   });
 
   it('surfaces discount_code_not_found inline below the discount field, not as the activate-level error', async () => {
-    activate.mockClear();
-    activate.mockRejectedValueOnce(
+    activateWithCard.mockClear();
+    activateWithCard.mockRejectedValueOnce(
       new ApiError(400, {
         detail: { error_code: 'discount_code_not_found', message: 'no such code' },
       }),
@@ -189,7 +189,7 @@ describe('BillingUpgrade', () => {
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
     await userEvent.type(screen.getByLabelText(/discount code/i), 'BADCODE');
-    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
+    fireEvent.click(screen.getByRole('button', { name: /pay and start trial/i }));
     await waitFor(() => {
       const alerts = screen.getAllByRole('alert');
       const found = alerts.some((el) =>
@@ -202,8 +202,8 @@ describe('BillingUpgrade', () => {
   });
 
   it('surfaces discount_code_not_applicable_to_plan inline', async () => {
-    activate.mockClear();
-    activate.mockRejectedValueOnce(
+    activateWithCard.mockClear();
+    activateWithCard.mockRejectedValueOnce(
       new ApiError(400, {
         detail: {
           error_code: 'discount_code_not_applicable_to_plan',
@@ -215,14 +215,14 @@ describe('BillingUpgrade', () => {
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
     await userEvent.type(screen.getByLabelText(/discount code/i), 'WRONGSKU');
-    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
+    fireEvent.click(screen.getByRole('button', { name: /pay and start trial/i }));
     const alert = await screen.findByText(/doesn't apply to the plan/i);
     expect(alert).toBeInTheDocument();
   });
 
   it('clears the inline discount error when the user edits the field again', async () => {
-    activate.mockClear();
-    activate.mockRejectedValueOnce(
+    activateWithCard.mockClear();
+    activateWithCard.mockRejectedValueOnce(
       new ApiError(400, {
         detail: { error_code: 'discount_code_expired', message: 'expired' },
       }),
@@ -232,7 +232,7 @@ describe('BillingUpgrade', () => {
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
     const field = screen.getByLabelText(/discount code/i);
     await userEvent.type(field, 'OLDCODE');
-    fireEvent.click(screen.getByTestId('paypal-buttons-mock'));
+    fireEvent.click(screen.getByRole('button', { name: /pay and start trial/i }));
     await screen.findByText(/code has expired/i);
     await userEvent.type(field, 'X');
     await waitFor(() => {
