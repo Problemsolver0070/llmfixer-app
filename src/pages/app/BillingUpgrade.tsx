@@ -66,10 +66,19 @@ export default function BillingUpgrade() {
     }
   }
 
-  const headerTitle = hasSubscription ? 'Change plan' : 'Pick a plan';
+  const isComped = account?.user.status === 'comped';
+  const compUntil = account?.user.comp_until ?? null;
+  const compPlanId = account?.user.plan_id ?? null;
+  const headerTitle = hasSubscription
+    ? 'Change plan'
+    : isComped
+      ? 'Switch to a paid plan'
+      : 'Pick a plan';
   const headerSub = hasSubscription
     ? 'Pick a different tier or cadence. Pro-rated by PayPal automatically.'
-    : 'Start with a 24-hour free trial. Cancel anytime before the trial ends and you will not be charged.';
+    : isComped
+      ? 'Optional. Your comp covers you for now, this is only for switching to a paid subscription.'
+      : 'Start with a 24-hour free trial. Cancel anytime before the trial ends and you will not be charged.';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -79,6 +88,14 @@ export default function BillingUpgrade() {
         </h1>
         <p style={{ color: 'var(--color-text-dim)', fontSize: 13, margin: '8px 0 0' }}>{headerSub}</p>
       </header>
+
+      {isComped && compUntil ? (
+        <div style={{ border: '1px solid var(--color-border)', padding: '10px 14px', fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--color-text-dim)' }}>
+          You're on {compPlanId ?? 'a comped plan'}, comped through{' '}
+          <strong style={{ color: 'var(--color-text)' }}>{new Date(compUntil).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong>.
+          {' '}You don't need to pick a plan to keep your access.
+        </div>
+      ) : null}
 
       <CadenceToggle cadence={cadence} onChange={(c) => { setCadence(c); }} />
 
