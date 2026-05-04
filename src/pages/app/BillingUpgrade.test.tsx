@@ -42,6 +42,9 @@ vi.mock('@paypal/react-paypal-js', () => ({
     },
   }),
   PayPalScriptProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  usePayPalScriptReducer: () => [{ isInitial: false }, vi.fn()],
+  DISPATCH_ACTION: { LOADING_STATUS: 'setLoadingStatus' },
+  SCRIPT_LOADING_STATE: { INITIAL: 'initial', PENDING: 'pending', RESOLVED: 'resolved', REJECTED: 'rejected' },
 }));
 
 vi.mock('@/hooks/usePlans', () => ({
