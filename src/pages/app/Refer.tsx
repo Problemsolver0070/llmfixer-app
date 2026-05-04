@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { useAccount } from '@/hooks/useAccount';
 import { useReferrals, type ReferralRow } from '@/hooks/useReferrals';
 import { formatDuration } from '@/lib/duration';
 
@@ -168,6 +169,8 @@ function ReferralsTable({ rows }: { rows: ReferralRow[] }): ReactNode {
 
 export default function Refer(): ReactNode {
   const { data, loading, error } = useReferrals();
+  const { data: account } = useAccount();
+  const isComped = account?.user.status === 'comped';
 
   const sortedRows = useMemo(
     () => (data ? sortReferrals(data.referrals) : []),
@@ -187,6 +190,24 @@ export default function Refer(): ReactNode {
   if (!data) return null;
 
   if (!data.is_eligible_to_refer || !data.referral_code || !data.referral_link) {
+    if (isComped) {
+      return (
+        <div className="refer-page">
+          <div className="refer-locked">
+            <p className="refer-locked-eyebrow">Referrals</p>
+            <h1 className="refer-locked-title">Unlock with a paid charge.</h1>
+            <p className="refer-locked-body">
+              Comp access does not count toward referral eligibility. Subscribe
+              to a paid plan when your comp is up and your referral code
+              unlocks the moment your first charge clears.
+            </p>
+            <Link to="/app/billing" className="refer-locked-cta">
+              Manage billing
+            </Link>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="refer-page">
         <div className="refer-locked">
