@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
+  DISPATCH_ACTION,
   PayPalCardFieldsProvider,
   PayPalNumberField,
   PayPalExpiryField,
   PayPalCVVField,
   PayPalNameField,
+  SCRIPT_LOADING_STATE,
   usePayPalCardFields,
+  usePayPalScriptReducer,
 } from '@paypal/react-paypal-js';
 import { CadenceToggle, type Cadence } from '@/components/pricing/CadenceToggle';
 import { PlanPicker } from '@/components/pricing/PlanPicker';
@@ -121,6 +124,21 @@ export default function BillingUpgrade() {
   const { data: account, refresh: refreshAccount } = useAccount();
   const { changePlan, activateWithCard } = useSubscription();
   const { workspace } = useWorkspace();
+  const [{ isInitial }, paypalDispatch] = usePayPalScriptReducer();
+
+  // The app-level PayPalScriptProvider runs with deferLoading=true so the
+  // SDK script is not pulled on every authenticated page. Wake it up the
+  // moment the upgrade page mounts; without this, PayPalCardFieldsProvider
+  // sits on its hands waiting for isResolved and renders no iframes, so
+  // the page shows nothing where the card form should be.
+  useEffect(() => {
+    if (isInitial) {
+      paypalDispatch({
+        type: DISPATCH_ACTION.LOADING_STATUS,
+        value: SCRIPT_LOADING_STATE.PENDING,
+      });
+    }
+  }, [isInitial, paypalDispatch]);
 
   const initialSku = params.get('plan') ?? account?.user.plan_id ?? 'solo-weekly';
   const initialCadence = (initialSku.split('-')[1] ?? 'weekly') as Cadence;
