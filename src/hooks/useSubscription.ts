@@ -94,5 +94,30 @@ export function useSubscription() {
     [refresh, fetchSubscription],
   );
 
-  return { subscription, loading, activate, cancel, redeem, changePlan };
+  const activateWithCard = useCallback(
+    async (
+      planId: string,
+      seatCount: number,
+      vaultSetupToken: string,
+      discountCode: string | null = null,
+    ) => {
+      const body: {
+        plan_id: string;
+        seat_count: number;
+        vault_setup_token: string;
+        discount_code?: string;
+      } = { plan_id: planId, seat_count: seatCount, vault_setup_token: vaultSetupToken };
+      const trimmed = discountCode?.trim();
+      if (trimmed) body.discount_code = trimmed;
+      await api('/v1/billing/subscriptions/activate-with-card', {
+        method: 'POST',
+        body,
+      });
+      await refresh();
+      await fetchSubscription();
+    },
+    [refresh, fetchSubscription],
+  );
+
+  return { subscription, loading, activate, activateWithCard, cancel, redeem, changePlan };
 }

@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  DISPATCH_ACTION,
-  FUNDING,
-  PayPalButtons,
-  SCRIPT_LOADING_STATE,
-  usePayPalScriptReducer,
+  PayPalCardFieldsProvider,
+  PayPalNumberField,
+  PayPalExpiryField,
+  PayPalCVVField,
+  PayPalNameField,
+  usePayPalCardFields,
 } from '@paypal/react-paypal-js';
 import { CadenceToggle, type Cadence } from '@/components/pricing/CadenceToggle';
 import { PlanPicker } from '@/components/pricing/PlanPicker';
@@ -19,11 +20,98 @@ import { usePlans } from '@/hooks/usePlans';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAccount } from '@/hooks/useAccount';
 import { useWorkspace } from '@/hooks/useWorkspace';
-import { ApiError } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 
 function paypalQuantityForSku(sku: string, seatCount: number): number {
   if (sku.startsWith('solo-')) return 1;
   return 1 + Math.max(0, seatCount - 4);
+}
+
+function CardFieldsForm({ submitting }: { submitting: boolean }) {
+  const { cardFieldsForm } = usePayPalCardFields();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <PayPalNameField
+        style={{
+          input: {
+            color: '#E6EAF2',
+            'font-family': "'JetBrains Mono', monospace",
+            'font-size': '13px',
+            padding: '10px 12px',
+          },
+          '.invalid': { color: '#E26B6B' },
+        }}
+      />
+      <PayPalNumberField
+        style={{
+          input: {
+            color: '#E6EAF2',
+            'font-family': "'JetBrains Mono', monospace",
+            'font-size': '13px',
+            padding: '10px 12px',
+          },
+          '.invalid': { color: '#E26B6B' },
+        }}
+      />
+      <div style={{ display: 'flex', gap: 10 }}>
+        <PayPalExpiryField
+          style={{
+            input: {
+              color: '#E6EAF2',
+              'font-family': "'JetBrains Mono', monospace",
+              'font-size': '13px',
+              padding: '10px 12px',
+            },
+            '.invalid': { color: '#E26B6B' },
+          }}
+        />
+        <PayPalCVVField
+          style={{
+            input: {
+              color: '#E6EAF2',
+              'font-family': "'JetBrains Mono', monospace",
+              'font-size': '13px',
+              padding: '10px 12px',
+            },
+            '.invalid': { color: '#E26B6B' },
+          }}
+        />
+      </div>
+      <button
+        type="button"
+        disabled={submitting}
+        onClick={async () => {
+          setSubmitError(null);
+          try {
+            await cardFieldsForm?.submit();
+          } catch (e) {
+            setSubmitError(e instanceof Error ? e.message : 'card_fields_submit_failed');
+          }
+        }}
+        style={{
+          background: 'var(--color-accent-copper)',
+          color: 'var(--color-bg)',
+          border: 0,
+          padding: '12px 16px',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 12,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          cursor: submitting ? 'not-allowed' : 'pointer',
+        }}
+      >
+        {submitting ? 'Subscribing...' : 'Pay and start trial'}
+      </button>
+      {submitError && (
+        <p style={{ color: 'var(--color-danger)', fontSize: 12 }}>{submitError}</p>
+      )}
+      <p style={{ color: 'var(--color-text-dim)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
+        Card details stay on PayPal's hosted form. We never see your card number.
+      </p>
+    </div>
+  );
 }
 
 export default function BillingUpgrade() {
@@ -31,22 +119,8 @@ export default function BillingUpgrade() {
   const navigate = useNavigate();
   const { plans, loading: plansLoading } = usePlans();
   const { data: account, refresh: refreshAccount } = useAccount();
-  const { changePlan, activate } = useSubscription();
+  const { changePlan, activateWithCard } = useSubscription();
   const { workspace } = useWorkspace();
-  const [{ isInitial }, paypalDispatch] = usePayPalScriptReducer();
-
-  // The app-level PayPalScriptProvider runs with deferLoading=true so the
-  // SDK script is not pulled on every authenticated page. Wake it up the
-  // moment the upgrade page mounts; without this, <PayPalButtons /> never
-  // renders (its effect early-returns while loadingStatus stays INITIAL).
-  useEffect(() => {
-    if (isInitial) {
-      paypalDispatch({
-        type: DISPATCH_ACTION.LOADING_STATUS,
-        value: SCRIPT_LOADING_STATE.PENDING,
-      });
-    }
-  }, [isInitial, paypalDispatch]);
 
   const initialSku = params.get('plan') ?? account?.user.plan_id ?? 'solo-weekly';
   const initialCadence = (initialSku.split('-')[1] ?? 'weekly') as Cadence;
@@ -166,24 +240,17 @@ export default function BillingUpgrade() {
             errorCode={discountErrorCode}
             disabled={submitting === 'subscribing'}
           />
-          <PayPalButtons
-            key={`paypal-${sku}-${seats}`}
-            style={{ layout: 'vertical', shape: 'rect', color: 'silver', label: 'subscribe' }}
-            disabled={submitting === 'subscribing'}
-            fundingSource={FUNDING.PAYPAL}
-            createSubscription={(_data, actions) =>
-              actions.subscription.create({
-                plan_id: selectedPlan.paypal_plan_id,
-                quantity: paypalQuantityForSku(sku, seats).toString(),
-              })
-            }
+          <PayPalCardFieldsProvider
+            createVaultSetupToken={async () => {
+              const r = await api<{ setup_token: string }>('/v1/billing/paypal/setup-token', { method: 'POST' });
+              return r.setup_token;
+            }}
             onApprove={async (data) => {
               setSubmitting('subscribing');
               setDiscountErrorCode(null);
               try {
-                if (!data.subscriptionID) throw new Error('paypal_no_subscription_id');
                 const trimmed = discountCode.trim();
-                await activate(data.subscriptionID, sku, seats, trimmed || null);
+                await activateWithCard(sku, seats, data.orderID, trimmed || null);
                 await refreshAccount();
                 navigate('/app/billing');
               } catch (e) {
@@ -197,56 +264,14 @@ export default function BillingUpgrade() {
               }
             }}
             onError={(err) => {
-              setSubmitting(`error: ${err instanceof Error ? err.message : 'paypal_error'}`);
+              const msg = err && typeof err === 'object' && 'message' in err
+                ? String(err.message)
+                : 'paypal_card_fields_error';
+              setSubmitting(`error: ${msg}`);
             }}
-          />
-          {/*
-            Explicit "Debit or Credit Card" button. Same createSubscription
-            and onApprove handlers as the PayPal-branded button above; the
-            buyer enters card details on PayPal's hosted form and never
-            creates or signs into a PayPal account. Renders only when the
-            merchant account is card-eligible (PayPal SDK gates rendering
-            via funding-eligibility check; if it does not appear, enable
-            "Advanced Credit and Debit Card Payments" in the PayPal
-            merchant dashboard).
-          */}
-          <PayPalButtons
-            key={`card-${sku}-${seats}`}
-            style={{ layout: 'vertical', shape: 'rect', color: 'black', label: 'pay' }}
-            disabled={submitting === 'subscribing'}
-            fundingSource={FUNDING.CARD}
-            createSubscription={(_data, actions) =>
-              actions.subscription.create({
-                plan_id: selectedPlan.paypal_plan_id,
-                quantity: paypalQuantityForSku(sku, seats).toString(),
-              })
-            }
-            onApprove={async (data) => {
-              setSubmitting('subscribing');
-              setDiscountErrorCode(null);
-              try {
-                if (!data.subscriptionID) throw new Error('paypal_no_subscription_id');
-                const trimmed = discountCode.trim();
-                await activate(data.subscriptionID, sku, seats, trimmed || null);
-                await refreshAccount();
-                navigate('/app/billing');
-              } catch (e) {
-                const discountErr = extractDiscountErrorCode(e);
-                if (discountErr) {
-                  setDiscountErrorCode(discountErr);
-                  setSubmitting(null);
-                  return;
-                }
-                setSubmitting(`error: ${e instanceof Error ? e.message : String(e)}`);
-              }
-            }}
-            onError={(err) => {
-              setSubmitting(`error: ${err instanceof Error ? err.message : 'paypal_error'}`);
-            }}
-          />
-          <p style={{ color: 'var(--color-text-dim)', fontSize: 11, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', margin: 0 }}>
-            Card details stay on PayPal's hosted form. No PayPal account required.
-          </p>
+          >
+            <CardFieldsForm submitting={submitting === 'subscribing'} />
+          </PayPalCardFieldsProvider>
           <Link to="/app/billing" style={{ color: 'var(--color-text-dim)', fontSize: 12, letterSpacing: '0.06em' }}>Cancel</Link>
         </div>
       ) : (
