@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   DISPATCH_ACTION,
+  FUNDING,
   PayPalButtons,
   SCRIPT_LOADING_STATE,
   usePayPalScriptReducer,
@@ -166,9 +167,10 @@ export default function BillingUpgrade() {
             disabled={submitting === 'subscribing'}
           />
           <PayPalButtons
-            key={`${sku}-${seats}`}
-            style={{ layout: 'horizontal', shape: 'rect', color: 'silver', label: 'subscribe' }}
+            key={`paypal-${sku}-${seats}`}
+            style={{ layout: 'vertical', shape: 'rect', color: 'silver', label: 'subscribe' }}
             disabled={submitting === 'subscribing'}
+            fundingSource={FUNDING.PAYPAL}
             createSubscription={(_data, actions) =>
               actions.subscription.create({
                 plan_id: selectedPlan.paypal_plan_id,
@@ -198,6 +200,53 @@ export default function BillingUpgrade() {
               setSubmitting(`error: ${err instanceof Error ? err.message : 'paypal_error'}`);
             }}
           />
+          {/*
+            Explicit "Debit or Credit Card" button. Same createSubscription
+            and onApprove handlers as the PayPal-branded button above; the
+            buyer enters card details on PayPal's hosted form and never
+            creates or signs into a PayPal account. Renders only when the
+            merchant account is card-eligible (PayPal SDK gates rendering
+            via funding-eligibility check; if it does not appear, enable
+            "Advanced Credit and Debit Card Payments" in the PayPal
+            merchant dashboard).
+          */}
+          <PayPalButtons
+            key={`card-${sku}-${seats}`}
+            style={{ layout: 'vertical', shape: 'rect', color: 'black', label: 'pay' }}
+            disabled={submitting === 'subscribing'}
+            fundingSource={FUNDING.CARD}
+            createSubscription={(_data, actions) =>
+              actions.subscription.create({
+                plan_id: selectedPlan.paypal_plan_id,
+                quantity: paypalQuantityForSku(sku, seats).toString(),
+              })
+            }
+            onApprove={async (data) => {
+              setSubmitting('subscribing');
+              setDiscountErrorCode(null);
+              try {
+                if (!data.subscriptionID) throw new Error('paypal_no_subscription_id');
+                const trimmed = discountCode.trim();
+                await activate(data.subscriptionID, sku, seats, trimmed || null);
+                await refreshAccount();
+                navigate('/app/billing');
+              } catch (e) {
+                const discountErr = extractDiscountErrorCode(e);
+                if (discountErr) {
+                  setDiscountErrorCode(discountErr);
+                  setSubmitting(null);
+                  return;
+                }
+                setSubmitting(`error: ${e instanceof Error ? e.message : String(e)}`);
+              }
+            }}
+            onError={(err) => {
+              setSubmitting(`error: ${err instanceof Error ? err.message : 'paypal_error'}`);
+            }}
+          />
+          <p style={{ color: 'var(--color-text-dim)', fontSize: 11, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', margin: 0 }}>
+            Card details stay on PayPal's hosted form. No PayPal account required.
+          </p>
           <Link to="/app/billing" style={{ color: 'var(--color-text-dim)', fontSize: 12, letterSpacing: '0.06em' }}>Cancel</Link>
         </div>
       ) : (

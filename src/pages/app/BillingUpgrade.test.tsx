@@ -23,13 +23,14 @@ const paypalCreateSubscription = vi.fn();
 const paypalOnApprove = vi.fn();
 const paypalDispatch = vi.fn();
 vi.mock('@paypal/react-paypal-js', () => ({
-  PayPalButtons: (props: { createSubscription?: unknown; onApprove?: unknown; disabled?: boolean }) => {
+  PayPalButtons: (props: { createSubscription?: unknown; onApprove?: unknown; disabled?: boolean; fundingSource?: string }) => {
     paypalCreateSubscription.mockImplementation(props.createSubscription as never);
     paypalOnApprove.mockImplementation(props.onApprove as never);
+    const isCard = props.fundingSource === 'card';
     return (
       <button
         type="button"
-        data-testid="paypal-buttons-mock"
+        data-testid={isCard ? 'paypal-card-button-mock' : 'paypal-buttons-mock'}
         disabled={props.disabled}
         onClick={async () => {
           const fakeActions = { subscription: { create: vi.fn(async () => 'SUB-NEW') } };
@@ -37,13 +38,14 @@ vi.mock('@paypal/react-paypal-js', () => ({
           await (props.onApprove as (data: { subscriptionID: string }) => Promise<void>)?.({ subscriptionID: 'SUB-NEW' });
         }}
       >
-        PayPal Subscribe
+        {isCard ? 'Pay with Card' : 'PayPal Subscribe'}
       </button>
     );
   },
   usePayPalScriptReducer: () => [{ isInitial: false }, paypalDispatch],
   DISPATCH_ACTION: { LOADING_STATUS: 'setLoadingStatus' },
   SCRIPT_LOADING_STATE: { INITIAL: 'initial', PENDING: 'pending', RESOLVED: 'resolved', REJECTED: 'rejected' },
+  FUNDING: { PAYPAL: 'paypal', CARD: 'card' },
 }));
 
 vi.mock('@/hooks/usePlans', () => ({
