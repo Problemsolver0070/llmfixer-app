@@ -29,14 +29,10 @@ function payload(overrides: Record<string, unknown> = {}) {
     full_name: 'Ada',
     referral_code: null,
     referred_by_user_id: null,
-    demo_expires_at: null,
-    trial_expires_at: null,
     first_paid_charge_at: null,
     referral_credit_seconds_accumulated: 0,
     is_eligible_to_refer: false,
     has_active_subscription: false,
-    in_demo_window: false,
-    in_trial_window: false,
     ...overrides,
   };
 }
@@ -66,22 +62,6 @@ describe('useUserMe', () => {
     expect(result.current.data).toBeNull();
   });
 
-  it('hasAccess=true when demo window is open', async () => {
-    apiCall.mockResolvedValue(payload({ in_demo_window: true }));
-    const { result } = renderHook(() => useUserMe());
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.inDemoWindow).toBe(true);
-    expect(result.current.hasAccess).toBe(true);
-  });
-
-  it('hasAccess=true when trial window is open', async () => {
-    apiCall.mockResolvedValue(payload({ in_trial_window: true }));
-    const { result } = renderHook(() => useUserMe());
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.inTrialWindow).toBe(true);
-    expect(result.current.hasAccess).toBe(true);
-  });
-
   it('hasAccess=true when subscription is active', async () => {
     apiCall.mockResolvedValue(payload({ has_active_subscription: true }));
     const { result } = renderHook(() => useUserMe());
@@ -90,16 +70,24 @@ describe('useUserMe', () => {
     expect(result.current.hasAccess).toBe(true);
   });
 
+  it('hasAccess=false when subscription is not active', async () => {
+    apiCall.mockResolvedValue(payload({ has_active_subscription: false }));
+    const { result } = renderHook(() => useUserMe());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.hasActiveSubscription).toBe(false);
+    expect(result.current.hasAccess).toBe(false);
+  });
+
   it('refresh() refetches', async () => {
     apiCall
-      .mockResolvedValueOnce(payload({ in_demo_window: false }))
-      .mockResolvedValueOnce(payload({ in_demo_window: true }));
+      .mockResolvedValueOnce(payload({ has_active_subscription: false }))
+      .mockResolvedValueOnce(payload({ has_active_subscription: true }));
     const { result } = renderHook(() => useUserMe());
-    await waitFor(() => expect(result.current.data?.in_demo_window).toBe(false));
+    await waitFor(() => expect(result.current.hasAccess).toBe(false));
     await act(async () => {
       await result.current.refresh();
     });
-    expect(result.current.data?.in_demo_window).toBe(true);
+    expect(result.current.hasAccess).toBe(true);
     expect(apiCall).toHaveBeenCalledTimes(2);
   });
 

@@ -62,17 +62,12 @@ export default function BillingUpgrade() {
     }
   }
 
-  // Two-tier model: status='active' covers BOTH PayPal subscribers AND
-  // code/hosted-button buyers (paypal_sub_id NULL, comp_until set).
-  // The page treats them differently because the second group has no
-  // PayPal subscription to /revise; their only action is starting a
-  // recurring subscription on top, which ends their comp window early.
+  const compUntil = account?.user.comp_until ?? null;
+  const compPlanId = account?.user.plan_id ?? null;
   const isCompAccess =
     account?.user.status === 'active'
     && !account.user.paypal_sub_id
     && Boolean(account.user.comp_until);
-  const compUntil = account?.user.comp_until ?? null;
-  const compPlanId = account?.user.plan_id ?? null;
   const headerTitle = hasSubscription
     ? 'Change plan'
     : isCompAccess
@@ -82,7 +77,7 @@ export default function BillingUpgrade() {
     ? 'Pick a different tier or cadence. Pro-rated by PayPal automatically.'
     : isCompAccess
       ? 'Optional. Your access is paid through the date below, this is only for moving to a recurring subscription.'
-      : 'Start with a 24-hour free trial. Cancel anytime before the trial ends and you will not be charged.';
+      : 'Pick a plan to subscribe. First charge in 24 hours.';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>

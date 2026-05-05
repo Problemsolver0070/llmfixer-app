@@ -9,7 +9,6 @@ export interface AccountData {
     email: string;
     role: 'user' | 'admin';
     status: string;
-    trial_ends_at: string | null;
     paypal_sub_id: string | null;
     cancels_at: string | null;
     comp_until: string | null;

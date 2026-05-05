@@ -4,15 +4,15 @@ import { api, ApiError } from '@/lib/api';
 import { useUserMe } from '@/hooks/useUserMe';
 
 /**
- * TrialGate (Round 4, T4.4).
+ * TrialGate.
  *
- * Wraps auth'd surfaces that should be denied to users who are not in an
- * access window (no demo, no trial, no active subscription). Renders the
- * children only when at least one of the three windows is open.
+ * Wraps auth'd surfaces that should be denied to users without paid usage
+ * (hasActiveSubscription === false). Renders children only when the user
+ * has an active subscription (PayPal, comp, or admin grant).
  *
  * The gate is intentionally NOT mounted around `/app/billing/*` (callers
- * need a way to add a payment method) or `/app/account` /
- * `/app/profile` (callers can update their name regardless).
+ * need a way to subscribe) or `/app/account` / `/app/profile` (callers
+ * can update their name regardless).
  *
  * Loading and error states render the wall layout's spinner and a soft
  * error rather than flashing the children. A 401 from `useUserMe` is
@@ -68,16 +68,16 @@ function TrialWall({ variant, onReferralClaimed }: TrialWallProps) {
         F.
       </div>
       <h1 className="trial-gate-title">
-        Add a payment method to start your 24-hour trial
+        Subscribe to use The Fixer
       </h1>
       <p className="trial-gate-body">
         {variant === 'error'
-          ? 'We could not confirm your access just now. Add a payment method to start your trial, or try again in a minute.'
-          : 'Your access is paused. Add a payment method and we will start your trial right away. Cancel any time before the trial ends and you will not be charged.'}
+          ? 'We could not confirm your access just now. Subscribe to get started, or try again in a minute.'
+          : 'Your access is paused. Subscribe to a plan to continue. Cancel anytime.'}
       </p>
       <div className="trial-gate-actions">
         <Link to="/app/billing/upgrade" className="trial-gate-cta">
-          Add payment method
+          Subscribe
         </Link>
       </div>
       <p className="trial-gate-secondary">
@@ -153,7 +153,7 @@ function ReferralClaimModal({ onClose, onClaimed }: ReferralClaimModalProps) {
           Apply a referral code
         </h2>
         <p className="trial-gate-modal-body">
-          Paste the code you were given. Valid codes unlock a 12-hour demo.
+          Paste the code you were given. Valid codes unlock access.
         </p>
         <form onSubmit={onSubmit}>
           <input

@@ -16,7 +16,7 @@ function setup() {
   useAccountMock.mockReturnValue({
     data: {
       user: { id: 'u', email: 'a@b.c', role: 'user', status: 'active',
-              trial_ends_at: null, paypal_sub_id: null, cancels_at: null, comp_until: null },
+              paypal_sub_id: null, cancels_at: null, comp_until: null },
       requests_this_week: 0, active_key_count: 0,
     },
     loading: false, error: null, refresh: async () => {},

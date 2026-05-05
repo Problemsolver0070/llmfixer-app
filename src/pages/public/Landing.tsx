@@ -101,7 +101,7 @@ export default function Landing() {
                   letterSpacing: '0.04em',
                 }}
               >
-                Start 24-hour trial
+                Subscribe
               </Link>
               <Link
                 to="/login"

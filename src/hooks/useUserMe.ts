@@ -3,11 +3,11 @@ import { api } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
 /**
- * Shape returned by `GET /v1/users/me` (R3, T3.1).
+ * Shape returned by `GET /v1/users/me`.
  *
- * Mirrors `UserResponse` in `llmfixer-api/src/app/schemas/users.py`. Used by
- * `PostSignupGate` and `TrialGate` to decide whether the caller has chat /
- * proxy access (active subscription, demo window, or trial window).
+ * Mirrors `UserResponse` in `llmfixer-api/src/app/schemas/users.py`. The
+ * backend collapsed access state to a single binary: `has_active_subscription`
+ * (true iff admin_chat_grant OR paypal_sub_status='ACTIVE' OR comp_until > now()).
  */
 export interface UserMeData {
   id: string;
@@ -15,15 +15,10 @@ export interface UserMeData {
   full_name: string | null;
   referral_code: string | null;
   referred_by_user_id: string | null;
-  demo_expires_at: string | null;
-  trial_expires_at: string | null;
   first_paid_charge_at: string | null;
   referral_credit_seconds_accumulated: number;
   is_eligible_to_refer: boolean;
   has_active_subscription: boolean;
-  in_demo_window: boolean;
-  in_trial_window: boolean;
-  in_comp_window: boolean;
   comp_until: string | null;
   plan_id: string | null;
 }
@@ -34,10 +29,7 @@ export interface UseUserMeResult {
   error: Error | null;
   isEligibleToRefer: boolean;
   hasActiveSubscription: boolean;
-  inDemoWindow: boolean;
-  inTrialWindow: boolean;
-  inCompWindow: boolean;
-  /** True iff at least one of the four access windows is open. */
+  /** True iff the user has paid usage (subscription, comp, or admin grant). */
   hasAccess: boolean;
   refresh: () => Promise<void>;
 }
@@ -80,8 +72,8 @@ export function useUserMe(): UseUserMeResult {
       }
       // Refresh on auth events that indicate the active user changed. We
       // skip TOKEN_REFRESHED for the same reason `useAccount` does: the
-      // hourly silent rotation does not change the user's trial / demo
-      // state, and we do not want to thrash the API.
+      // hourly silent rotation does not change the user's access state,
+      // and we do not want to thrash the API.
       if (
         event === 'SIGNED_IN' ||
         event === 'USER_UPDATED' ||
@@ -95,11 +87,7 @@ export function useUserMe(): UseUserMeResult {
 
   const isEligibleToRefer = Boolean(data?.is_eligible_to_refer);
   const hasActiveSubscription = Boolean(data?.has_active_subscription);
-  const inDemoWindow = Boolean(data?.in_demo_window);
-  const inTrialWindow = Boolean(data?.in_trial_window);
-  const inCompWindow = Boolean(data?.in_comp_window);
-  const hasAccess =
-    hasActiveSubscription || inDemoWindow || inTrialWindow || inCompWindow;
+  const hasAccess = hasActiveSubscription;
 
   return {
     data,
@@ -107,9 +95,6 @@ export function useUserMe(): UseUserMeResult {
     error,
     isEligibleToRefer,
     hasActiveSubscription,
-    inDemoWindow,
-    inTrialWindow,
-    inCompWindow,
     hasAccess,
     refresh: fetchOnce,
   };

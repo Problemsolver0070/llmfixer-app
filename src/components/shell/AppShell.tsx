@@ -4,7 +4,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Brand } from './Brand';
 import { ChatNavLink } from './ChatNavLink';
 import { UserMenu } from './UserMenu';
-import { TrialBanner } from '@/components/trial/TrialBanner';
 import { useAccount } from '@/hooks/useAccount';
 import {
   AppShellWidthContext,
@@ -85,7 +84,6 @@ export function AppShell({ width: initialWidth = 'narrow', children }: Props) {
           {data && <UserMenu email={data.user.email} />}
         </header>
         <main className="app-shell-main" data-width={width}>
-          <TrialBanner />
           {children}
         </main>
       </div>

@@ -51,15 +51,15 @@ function referralClaimErrorMessage(body: unknown): string {
       : '';
   switch (code) {
     case 'referrer_cap_reached':
-      return "This referral code is at its limit right now. You're signed up, sign in and add a payment method to start your 24-hour trial.";
+      return "This referral code is at its limit right now. You're signed up, subscribe to get started.";
     case 'referrer_not_eligible':
-      return "This referral code isn't active. You're signed up, add a payment method to start your 24-hour trial.";
+      return "This referral code isn't active. You're signed up, subscribe to get started.";
     case 'code_not_found':
-      return "Referral code not found. You're signed up, add a payment method to start your 24-hour trial.";
+      return "Referral code not found. You're signed up, subscribe to get started.";
     case 'self_referral':
-      return "You can't refer yourself. You're signed up, add a payment method to start your 24-hour trial.";
+      return "You can't refer yourself. You're signed up, subscribe to get started.";
     case 'already_claimed':
-      return "This account already used a referral. You're signed up, add a payment method to start your 24-hour trial.";
+      return "This account already used a referral. You're signed up, subscribe to get started.";
     default:
       return "We couldn't apply the referral code. You're signed up, contact support if needed.";
   }
@@ -99,7 +99,7 @@ export function SignUpForm({ inviteToken }: { inviteToken?: string | null } = {}
       await api('/v1/referrals/claim', { method: 'POST', body: { code } });
       setReferralNotice({
         kind: 'success',
-        message: 'Referral applied. 12-hour demo started.',
+        message: 'Referral applied. Access granted.',
       });
     } catch (caught) {
       if (caught instanceof ApiError) {
@@ -290,7 +290,7 @@ export function SignUpForm({ inviteToken }: { inviteToken?: string | null } = {}
         value={referralCode}
         onChange={(e) => setReferralCode(e.currentTarget.value.toUpperCase())}
         onBlur={(e) => setReferralCode(e.currentTarget.value.trim().toUpperCase())}
-        hint="Enter a code to start with a 12-hour free trial."
+        hint="Enter a code to get access."
         error={referralError ?? undefined}
         maxLength={8}
         placeholder="ABCD1234"

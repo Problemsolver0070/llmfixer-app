@@ -59,7 +59,7 @@ describe('TrialGate', () => {
     });
     renderGate();
     expect(screen.getByText('Inside')).toBeInTheDocument();
-    expect(screen.queryByText(/add a payment method/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/subscribe to use/i)).not.toBeInTheDocument();
   });
 
   it('renders the wall when hasAccess=false', () => {
@@ -71,7 +71,7 @@ describe('TrialGate', () => {
     });
     renderGate();
     expect(
-      screen.getByRole('heading', { name: /add a payment method to start your 24-hour trial/i }),
+      screen.getByRole('heading', { name: /subscribe to use the fixer/i }),
     ).toBeInTheDocument();
     expect(screen.queryByText('Inside')).not.toBeInTheDocument();
   });
@@ -84,7 +84,7 @@ describe('TrialGate', () => {
       refresh: vi.fn(),
     });
     renderGate();
-    const cta = screen.getByRole('link', { name: /add payment method/i });
+    const cta = screen.getByRole('link', { name: /subscribe/i });
     expect(cta).toHaveAttribute('href', '/app/billing/upgrade');
   });
 

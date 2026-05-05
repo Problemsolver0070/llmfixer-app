@@ -122,7 +122,7 @@ export default function Pricing() {
         <section className="pricing-hero">
           <h1 className="pricing-hero-title">Built for heavy LLM use.</h1>
           <p className="pricing-hero-sub">
-            No artificial caps. Pooled context. One drop-in key for every model. Forty-eight-hour free trial, no upfront charge.
+            No artificial caps. Pooled context. One drop-in key for every model. Subscribe today, first charge in 24 hours. Cancel anytime.
           </p>
         </section>
 
@@ -137,7 +137,7 @@ export default function Pricing() {
             introPromoActive={solo?.intro_promo_active}
             tagline={SOLO_TAGLINE}
             features={SOLO_FEATURES}
-            ctaLabel="Start 24-hour trial"
+            ctaLabel="Subscribe"
             onCtaClick={() => startTrial('solo')}
           />
           <TierCard
@@ -149,7 +149,7 @@ export default function Pricing() {
             tagline={WORKSPACE_TAGLINE}
             features={WORKSPACE_FEATURES}
             extraSeat={extraSeatParts(workspace)}
-            ctaLabel="Start 24-hour trial"
+            ctaLabel="Subscribe"
             onCtaClick={() => startTrial('workspace')}
           />
           <TierCard

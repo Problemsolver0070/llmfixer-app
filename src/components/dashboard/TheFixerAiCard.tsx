@@ -1,10 +1,6 @@
-import { useAccount } from '@/hooks/useAccount';
-
 const CHAT_HREF = 'https://chat.thefixer.in';
 
 export function TheFixerAiCard() {
-  const { hasActiveSubscription } = useAccount();
-  if (!hasActiveSubscription) return null;
   return (
     <a
       href={CHAT_HREF}

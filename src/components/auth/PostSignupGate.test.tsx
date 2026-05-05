@@ -26,30 +26,16 @@ describe('PostSignupGate', () => {
     mockUserMe.mockReturnValue({
       loading: true,
       error: null,
-      hasAccess: false,
+      hasActiveSubscription: false,
     });
     renderAt('/app/post-signup');
     expect(screen.getByRole('status')).toHaveTextContent(/setting up/i);
-  });
-
-  it('redirects to /app/setup when user is in demo window', async () => {
-    mockUserMe.mockReturnValue({
-      loading: false,
-      error: null,
-      hasAccess: true,
-      inDemoWindow: true,
-    });
-    renderAt('/app/post-signup');
-    await waitFor(() =>
-      expect(screen.getByText('Setup page')).toBeInTheDocument(),
-    );
   });
 
   it('redirects to /app/setup when user has active subscription', async () => {
     mockUserMe.mockReturnValue({
       loading: false,
       error: null,
-      hasAccess: true,
       hasActiveSubscription: true,
     });
     renderAt('/app/post-signup');
@@ -58,24 +44,11 @@ describe('PostSignupGate', () => {
     );
   });
 
-  it('redirects to /app/setup when user is in trial window', async () => {
+  it('redirects to /app/billing/upgrade when no active subscription', async () => {
     mockUserMe.mockReturnValue({
       loading: false,
       error: null,
-      hasAccess: true,
-      inTrialWindow: true,
-    });
-    renderAt('/app/post-signup');
-    await waitFor(() =>
-      expect(screen.getByText('Setup page')).toBeInTheDocument(),
-    );
-  });
-
-  it('redirects to /app/billing/upgrade when no demo / trial / subscription', async () => {
-    mockUserMe.mockReturnValue({
-      loading: false,
-      error: null,
-      hasAccess: false,
+      hasActiveSubscription: false,
     });
     renderAt('/app/post-signup');
     await waitFor(() =>
@@ -87,7 +60,7 @@ describe('PostSignupGate', () => {
     mockUserMe.mockReturnValue({
       loading: false,
       error: new Error('boom'),
-      hasAccess: false,
+      hasActiveSubscription: false,
     });
     renderAt('/app/post-signup');
     await waitFor(() =>
