@@ -17,10 +17,16 @@ export function AppPayPalProvider({ children }: { children: ReactNode }) {
         clientId: env.paypalClientId,
         intent: 'subscription',
         vault: true,
-        components: 'card-fields',
+        // Both the SDK Subscribe Button (new 50%-off promo flow) and the
+        // legacy Card Fields setup token flow share a single SDK load.
+        // PayPal supports comma-separated components on one script tag.
+        components: 'buttons,card-fields',
         ...(clientToken ? { dataClientToken: clientToken } : {}),
       }}
-      deferLoading
+      // The Subscribe Button needs the SDK loaded immediately on render.
+      // Card Fields previously required deferLoading until the
+      // dataClientToken arrived; with the `key` prop already remounting
+      // the provider when the token changes, we no longer need to defer.
     >
       {error ? (
         <div style={{ padding: 16 }}>

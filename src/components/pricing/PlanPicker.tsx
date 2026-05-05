@@ -42,7 +42,36 @@ export function PlanPicker({
               <span style={{ color: 'var(--color-accent-copper-bright)' }}>{p.sku}</span>
               <span style={{ color: 'var(--color-text-dim)', marginLeft: 12 }}>{p.tier}</span>
             </span>
-            <span>{p.display_price}</span>
+            <span style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+              <span>{p.display_price}</span>
+              {p.intro_promo_active && p.original_display_price ? (
+                <>
+                  <span
+                    data-testid={`plan-row-${p.sku}-strikethrough`}
+                    style={{
+                      color: 'var(--color-text-dim)',
+                      textDecoration: 'line-through',
+                      fontSize: 11,
+                    }}
+                  >
+                    {p.original_display_price}
+                  </span>
+                  <span
+                    data-testid={`plan-row-${p.sku}-promo-badge`}
+                    style={{
+                      color: 'var(--color-accent-copper-bright)',
+                      fontSize: 10,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      border: '1px solid var(--color-accent-copper)',
+                      padding: '2px 6px',
+                    }}
+                  >
+                    50% off
+                  </span>
+                </>
+              ) : null}
+            </span>
           </button>
         );
       })}

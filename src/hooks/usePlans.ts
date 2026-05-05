@@ -12,6 +12,12 @@ export interface Plan {
   display_price: string;
   discount_pct: number;
   trial_days: number;
+  // Launch-promo strikethrough fields. When intro_promo_active is true,
+  // original_price_cents and original_display_price hold the pre-promo
+  // full price so we can render strikethrough + savings indicator.
+  original_price_cents?: number | null;
+  original_display_price?: string | null;
+  intro_promo_active?: boolean;
 }
 
 interface PlansResponse { plans: Plan[]; }
