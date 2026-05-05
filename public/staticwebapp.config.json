@@ -1,7 +1,15 @@
 {
+  "globalHeaders": {
+    "Content-Security-Policy-Report-Only": "default-src 'self'; script-src 'self' https://www.paypal.com https://*.paypal.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://*.paypal.com https://*.paypalobjects.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.thefixer.in https://*.supabase.co https://*.paypal.com https://api-m.paypal.com; frame-src https://www.paypal.com https://*.paypal.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=()"
+  },
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/*.{ico,svg,png,jpg,jpeg,webp,woff,woff2}"]
+    "exclude": ["/assets/*", "/*.{ico,png,jpg,jpeg,gif,svg,webp,woff,woff2,ttf,eot}"]
   },
   "responseOverrides": {
     "404": {
