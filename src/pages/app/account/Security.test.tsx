@@ -1,4 +1,6 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -25,7 +27,11 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('qrcode', () => ({
   default: {
-    toString: vi.fn().mockResolvedValue('<svg data-testid="fake-svg"></svg>'),
+    toDataURL: vi
+      .fn()
+      .mockResolvedValue(
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+      ),
   },
 }));
 
@@ -91,8 +97,25 @@ describe('Security page', () => {
     renderAt();
     await userEvent.click(await screen.findByRole('button', { name: /enable totp/i }));
     await waitFor(() => expect(screen.getByTestId('mfa-qr')).toBeInTheDocument());
+    // F25: the QR must be rendered as an <img> with a data: URL src,
+    // NOT injected via dangerouslySetInnerHTML.
+    const qr = screen.getByTestId('mfa-qr');
+    const img = within(qr).getByRole('img', { name: /mfa qr code/i });
+    expect(img).toBeInTheDocument();
+    expect(img.getAttribute('src')).toMatch(/^data:image\//);
+    expect(qr.innerHTML).not.toMatch(/<svg/i);
     expect(screen.getByText(/JBSWY3DPEHPK3PXP/)).toBeInTheDocument();
     expect(screen.getByLabelText(/6-digit code/i)).toBeInTheDocument();
+  });
+
+  it('does not use dangerouslySetInnerHTML anywhere in Security.tsx (F25)', () => {
+    // Belt-and-braces guard so a future refactor doesn't reintroduce
+    // the innerHTML sink. Read the source file off disk and assert.
+    const source = readFileSync(
+      resolve(process.cwd(), 'src/pages/app/account/Security.tsx'),
+      'utf8',
+    );
+    expect(source).not.toMatch(/dangerouslySetInnerHTML/);
   });
 
   it('verifies the entered code and shows MFA enabled', async () => {
