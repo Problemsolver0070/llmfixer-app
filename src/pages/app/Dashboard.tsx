@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { TheFixerAiCard } from '@/components/dashboard/TheFixerAiCard';
 import { useAccount } from '@/hooks/useAccount';
-import { formatDateTime, hoursUntil } from '@/lib/format';
+import { formatDateTime } from '@/lib/format';
 
 export default function Dashboard() {
-  const { data, loading } = useAccount();
+  const { data, loading, hasActiveSubscription } = useAccount();
   if (loading || !data) return <p style={{ color: 'var(--color-text-dim)' }}>Loading...</p>;
 
   const u = data.user;
@@ -14,20 +14,14 @@ export default function Dashboard() {
       <h1 style={{ fontSize: 24, fontWeight: 300, letterSpacing: '-0.01em', margin: 0 }}>
         Dashboard
       </h1>
-      {u.status === 'trial' && !u.paypal_sub_id ? (
-        <div className="trial-banner">
-          <div>
-            <div className="trial-banner-title">Start your subscription</div>
-            <div className="trial-banner-sub">
-              You are on a free trial. Pick a plan to keep your access after the trial ends.
-            </div>
-          </div>
-          <Link to="/pricing" className="trial-banner-cta">See plans →</Link>
-        </div>
-      ) : null}
       <TheFixerAiCard />
       <Card>
-        <AccountStateCard user={u} />
+        <AccountStateCard
+          hasActiveSubscription={hasActiveSubscription}
+          compUntil={u.comp_until}
+          cancelsAt={u.cancels_at}
+          paypalSubId={u.paypal_sub_id}
+        />
       </Card>
       <Card>
         <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: 0 }}>
@@ -52,67 +46,68 @@ export default function Dashboard() {
   );
 }
 
-function AccountStateCard({ user }: { user: { status: string; trial_ends_at: string | null; cancels_at: string | null } }) {
-  if (user.status === 'trial' && user.trial_ends_at) {
+function AccountStateCard({
+  hasActiveSubscription,
+  compUntil,
+  cancelsAt,
+  paypalSubId,
+}: {
+  hasActiveSubscription: boolean;
+  compUntil: string | null;
+  cancelsAt: string | null;
+  paypalSubId: string | null;
+}) {
+  if (!hasActiveSubscription) {
     return (
       <div>
         <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: 0 }}>
-          Trial active
+          No active subscription
         </p>
         <p style={{ fontSize: 16, margin: '8px 0' }}>
-          Ends {formatDateTime(user.trial_ends_at)}, {hoursUntil(user.trial_ends_at)} hours remaining
+          Subscribe to The Fixer to start using your keys.
         </p>
-        <Link to="/app/billing" style={{ color: 'var(--color-accent-bright)' }}>
+        <Link to="/app/billing/upgrade" style={{ color: 'var(--color-accent-bright)' }}>
           Subscribe
         </Link>
       </div>
     );
   }
-  if (user.status === 'trial_expired' || user.status === 'expired') {
-    return (
-      <div>
-        <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-danger)', textTransform: 'uppercase', margin: 0 }}>
-          Paused
-        </p>
-        <p style={{ fontSize: 16, margin: '8px 0' }}>
-          Your trial ended. Subscribe to keep using your keys.
-        </p>
-        <Link to="/app/billing" style={{ color: 'var(--color-accent-bright)' }}>
-          Subscribe
-        </Link>
-      </div>
-    );
-  }
-  if (user.status === 'active' && user.cancels_at) {
+
+  if (cancelsAt) {
     return (
       <div>
         <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: 0 }}>
           Cancelling
         </p>
         <p style={{ fontSize: 16, margin: '8px 0' }}>
-          Subscription ends {formatDateTime(user.cancels_at)}. After that your keys stop working.
+          Subscription ends {formatDateTime(cancelsAt)}. After that your keys stop working.
         </p>
       </div>
     );
   }
-  if (user.status === 'active') {
+
+  // Active: show comp_until date for comp users, generic active for PayPal subscribers.
+  if (!paypalSubId && compUntil) {
     return (
       <div>
         <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-success)', textTransform: 'uppercase', margin: 0 }}>
           Active
         </p>
         <p style={{ fontSize: 16, margin: '8px 0' }}>
-          $19.99 / week. Manage on PayPal for invoices.
+          Paid through {formatDateTime(compUntil)}.
         </p>
       </div>
     );
   }
+
   return (
     <div>
-      <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-text-dim)', textTransform: 'uppercase', margin: 0 }}>
-        Status
+      <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-success)', textTransform: 'uppercase', margin: 0 }}>
+        Active
       </p>
-      <p style={{ fontSize: 16, margin: '8px 0' }}>{user.status}</p>
+      <p style={{ fontSize: 16, margin: '8px 0' }}>
+        Manage on PayPal for invoices.
+      </p>
     </div>
   );
 }

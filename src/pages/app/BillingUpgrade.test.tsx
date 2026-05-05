@@ -116,8 +116,8 @@ describe('BillingUpgrade', () => {
     useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
-    expect(screen.getByText(/Pick a plan/)).toBeInTheDocument();
-    expect(screen.getByText(/Start with a 24-hour free trial/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Pick a plan/ })).toBeInTheDocument();
+    expect(screen.getByText(/Pick a plan to subscribe/)).toBeInTheDocument();
     const btn = screen.getByTestId('paypal-subscribe-button');
     expect(btn).toBeInTheDocument();
     expect(btn).toHaveAttribute('data-plan-id', 'P-SW');

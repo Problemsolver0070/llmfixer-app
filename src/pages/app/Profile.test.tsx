@@ -31,14 +31,10 @@ function userMeData(overrides: Record<string, unknown> = {}) {
     full_name: 'Ada Lovelace',
     referral_code: null,
     referred_by_user_id: null,
-    demo_expires_at: null,
-    trial_expires_at: null,
     first_paid_charge_at: null,
     referral_credit_seconds_accumulated: 0,
     is_eligible_to_refer: false,
     has_active_subscription: false,
-    in_demo_window: false,
-    in_trial_window: false,
     ...overrides,
   };
 }
@@ -50,8 +46,6 @@ function makeUserMeReturn(data: ReturnType<typeof userMeData> | null, refresh = 
     error: null,
     isEligibleToRefer: false,
     hasActiveSubscription: false,
-    inDemoWindow: false,
-    inTrialWindow: false,
     hasAccess: false,
     refresh,
   };
@@ -88,8 +82,6 @@ describe('Profile page', () => {
       error: null,
       isEligibleToRefer: false,
       hasActiveSubscription: false,
-      inDemoWindow: false,
-      inTrialWindow: false,
       hasAccess: false,
       refresh: vi.fn(),
     });

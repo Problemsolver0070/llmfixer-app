@@ -11,9 +11,8 @@ export interface PaypalSubscription {
 
 export interface RedeemResult {
   applied_effect: {
-    type: 'free_time' | 'full_comp' | 'trial_extension';
+    type: 'paid_usage_grant';
     days_added?: number;
-    new_trial_ends_at?: string;
     comp_until?: string;
   };
 }

@@ -20,7 +20,7 @@ import { RedeemPromoForm } from './RedeemPromoForm';
 describe('RedeemPromoForm', () => {
   it('submits the code and shows the success message from applied_effect', async () => {
     const redeem = vi.fn().mockResolvedValue({
-      applied_effect: { type: 'free_time', days_added: 30, new_trial_ends_at: '2026-05-27T11:36:00Z' },
+      applied_effect: { type: 'paid_usage_grant', days_added: 30, comp_until: '2026-05-27T11:36:00Z' },
     });
     render(<RedeemPromoForm onRedeem={redeem} />);
     await userEvent.type(screen.getByLabelText(/promo code/i), 'PARTY30');

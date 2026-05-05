@@ -2,22 +2,21 @@ import { Navigate } from 'react-router-dom';
 import { useUserMe } from '@/hooks/useUserMe';
 
 /**
- * Post-signup landing gate (Round 4, T4.3).
+ * Post-signup landing gate.
  *
  * Mounted at `/app/post-signup`, this is the destination that the email
  * confirmation link routes to. It reads `/v1/users/me` and routes the
  * caller to the right next surface:
  *
- *   - demo window open (referral applied at signup) -> /app/setup
- *   - trial open or active subscription              -> /app/setup
- *   - none of the above                              -> /app/billing/upgrade
+ *   - hasActiveSubscription true  -> /app/setup
+ *   - otherwise                   -> /app/billing/upgrade
  *
  * `RequireAuth` (the parent route) already handles unauthenticated and
  * unverified callers, so this component only runs once the caller has a
  * verified Supabase session.
  */
 export function PostSignupGate() {
-  const { loading, error, hasAccess } = useUserMe();
+  const { loading, error, hasActiveSubscription } = useUserMe();
 
   if (loading) {
     return (
@@ -46,7 +45,7 @@ export function PostSignupGate() {
     return <Navigate to="/app/billing/upgrade" replace />;
   }
 
-  if (hasAccess) {
+  if (hasActiveSubscription) {
     return <Navigate to="/app/setup" replace />;
   }
   return <Navigate to="/app/billing/upgrade" replace />;

@@ -16,8 +16,6 @@ vi.mock('@/hooks/useUserMe', () => ({
     error: null,
     isEligibleToRefer: false,
     hasActiveSubscription: false,
-    inDemoWindow: false,
-    inTrialWindow: false,
     hasAccess: false,
     refresh: vi.fn(),
   }),
@@ -50,9 +48,9 @@ const WORKSPACE_EMPTY = {
 };
 
 describe('Billing', () => {
-  it('renders See-plans CTA pointing at /pricing for trial users without a subscription', () => {
+  it('renders See-plans CTA for expired users without a subscription', () => {
     vi.mocked(useAccount).mockReturnValue({
-      data: { user: { id: 'u', email: 'a', status: 'trial', paypal_sub_id: null, plan_id: null, seat_count: 1, cancels_at: null }, requests_this_week: 0, active_key_count: 0 },
+      data: { user: { id: 'u', email: 'a', status: 'expired', paypal_sub_id: null, plan_id: null, seat_count: 1, cancels_at: null }, requests_this_week: 0, active_key_count: 0 },
       loading: false, refresh: vi.fn(),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
@@ -114,9 +112,7 @@ describe('Billing', () => {
     expect(screen.getByText('jess@acme.io')).toBeInTheDocument();
     expect(screen.getByText('sam@acme.io')).toBeInTheDocument();
     expect(screen.getByText('kira@acme.io')).toBeInTheDocument();
-    // The dialog's Cancel subscription button should fire cancel().
     const dialogButtons = screen.getAllByRole('button', { name: /Cancel subscription/i });
-    // Two buttons exist: the original page button and the dialog confirm. Click the dialog one.
     fireEvent.click(dialogButtons[dialogButtons.length - 1]);
     await waitFor(() => expect(cancelMock).toHaveBeenCalled());
   });
@@ -133,7 +129,6 @@ describe('Billing', () => {
     vi.mocked(useWorkspace).mockReturnValue(WORKSPACE_EMPTY as any);
     render(<MemoryRouter><Billing /></MemoryRouter>);
     fireEvent.click(screen.getByRole('button', { name: /Cancel subscription/i }));
-    // Old confirm modal copy mentions "keys keep working", cascade dialog does not.
     expect(screen.getByText(/keys keep working/i)).toBeInTheDocument();
     expect(screen.queryByText(/End workspace access/)).not.toBeInTheDocument();
   });

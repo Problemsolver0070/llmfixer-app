@@ -7,34 +7,6 @@ vi.mock('@/hooks/useAccount', () => ({ useAccount: () => useAccount() }));
 vi.mock('@/lib/supabase', () => ({
   supabase: { auth: { signOut: vi.fn() } },
 }));
-// TrialBanner is rendered inside AppShell; stub its hooks so the test
-// stays focused on shell behaviour and does not need real API mocks.
-vi.mock('@/hooks/useUserMe', () => ({
-  useUserMe: () => ({
-    data: null,
-    loading: false,
-    error: null,
-    isEligibleToRefer: false,
-    hasActiveSubscription: false,
-    inDemoWindow: false,
-    inTrialWindow: false,
-    hasAccess: false,
-    refresh: vi.fn(),
-  }),
-}));
-vi.mock('@/hooks/useSubscription', () => ({
-  useSubscription: () => ({
-    subscription: null,
-    loading: false,
-    activate: vi.fn(),
-    cancel: vi.fn(),
-    redeem: vi.fn(),
-    changePlan: vi.fn(),
-  }),
-}));
-vi.mock('@/hooks/usePlans', () => ({
-  usePlans: () => ({ plans: [], loading: false, error: null, refresh: vi.fn() }),
-}));
 
 import { AppShell } from './AppShell';
 
@@ -43,7 +15,6 @@ type ShellOpts = {
   path?: string;
   plan_id?: string | null;
   workspace_admin_id?: string | null;
-  hasActiveSubscription?: boolean;
 };
 
 function shell(opts: ShellOpts = {}) {
@@ -52,16 +23,15 @@ function shell(opts: ShellOpts = {}) {
     path = '/app/dashboard',
     plan_id = null,
     workspace_admin_id = null,
-    hasActiveSubscription = false,
   } = opts;
   useAccount.mockReturnValue({
     data: {
-      user: { id: 'u', email: 'a@b.c', role, status: 'trial', trial_ends_at: null,
+      user: { id: 'u', email: 'a@b.c', role, status: 'active',
               paypal_sub_id: null, cancels_at: null, comp_until: null,
               plan_id, seat_count: 1, workspace_admin_id },
       requests_this_week: 0, active_key_count: 0,
     },
-    loading: false, error: null, hasActiveSubscription, refresh: async () => {},
+    loading: false, error: null, hasActiveSubscription: false, refresh: async () => {},
   });
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -125,7 +95,7 @@ describe('AppShell', () => {
   it('honors an explicit width prop on the shell', () => {
     useAccount.mockReturnValue({
       data: {
-        user: { id: 'u', email: 'a@b.c', role: 'user', status: 'trial', trial_ends_at: null,
+        user: { id: 'u', email: 'a@b.c', role: 'user', status: 'active',
                 paypal_sub_id: null, cancels_at: null, comp_until: null,
                 plan_id: null, seat_count: 1, workspace_admin_id: null },
         requests_this_week: 0, active_key_count: 0,
@@ -158,7 +128,7 @@ describe('AppShell', () => {
     expect(screen.queryByRole('link', { name: /workspace/i })).not.toBeInTheDocument();
   });
 
-  it('hides the Workspace tab for a free-trial user (no plan_id, no workspace)', () => {
+  it('hides the Workspace tab for a user with no plan_id and no workspace', () => {
     shell({ plan_id: null, workspace_admin_id: null });
     expect(screen.queryByRole('link', { name: /workspace/i })).not.toBeInTheDocument();
   });
@@ -174,20 +144,15 @@ describe('AppShell', () => {
     expect(billingIdx).toBe(workspaceIdx + 1);
   });
 
-  it('includes ChatNavLink for paid users (hasActiveSubscription=true)', () => {
-    shell({ hasActiveSubscription: true });
+  it('always includes ChatNavLink for any signed-in user', () => {
+    shell();
     const link = screen.getByRole('link', { name: /the fixer ai/i });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('href', 'https://chat.thefixer.in');
   });
 
-  it('hides ChatNavLink for unpaid users (hasActiveSubscription=false)', () => {
-    shell({ hasActiveSubscription: false });
-    expect(screen.queryByRole('link', { name: /^the fixer ai$/i })).not.toBeInTheDocument();
-  });
-
   it('places ChatNavLink after Account and before Admin', () => {
-    shell({ role: 'admin', hasActiveSubscription: true });
+    shell({ role: 'admin' });
     const links = screen.getAllByRole('link').map((a) => a.textContent);
     const accountIdx = links.indexOf('Account');
     const chatIdx = links.indexOf('The Fixer ai');

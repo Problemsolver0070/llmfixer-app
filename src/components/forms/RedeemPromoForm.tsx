@@ -26,10 +26,12 @@ export function RedeemPromoForm({ onRedeem }: { onRedeem: (code: string) => Prom
     try {
       const out = await onRedeem(code);
       const eff = out.applied_effect;
-      if (eff.type === 'free_time' || eff.type === 'trial_extension') {
-        setSuccess(`${eff.days_added} days added to your trial.`);
-      } else if (eff.type === 'full_comp') {
-        setSuccess(`Account comped through ${eff.comp_until}.`);
+      if (eff.days_added) {
+        setSuccess(`${eff.days_added} days of access added.`);
+      } else if (eff.comp_until) {
+        setSuccess(`Access granted through ${eff.comp_until}.`);
+      } else {
+        setSuccess('Access granted.');
       }
       setCode('');
     } catch (caught) {

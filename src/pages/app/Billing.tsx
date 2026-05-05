@@ -22,13 +22,12 @@ export default function Billing() {
 
   if (loading || !data) return <p style={{ color: 'var(--color-text-dim)' }}>Loading...</p>;
   const u = data.user;
-  const showSubscribe = ['trial', 'trial_expired', 'cancelled', 'expired'].includes(u.status);
-  // Two-tier model: status='active' covers BOTH PayPal subscribers AND
-  // code/hosted-button buyers (paypal_sub_id NULL, comp_until set).
-  // The Plan card and the optional "switch to paid" CTA differ between
-  // the two; we branch on `isCompAccess` (active without a PayPal sub).
-  const showPlanCard = u.status === 'active' && Boolean(u.plan_id);
-  const isCompAccess = u.status === 'active' && !u.paypal_sub_id && Boolean(u.comp_until);
+  const hasActiveSub = u.status === 'active';
+  const showSubscribe = !hasActiveSub;
+  const showPlanCard = hasActiveSub && Boolean(u.plan_id);
+  // Comp users and PayPal subscribers both have status='active'. Branch
+  // on paypal_sub_id to decide which "paid through" line to show.
+  const isCompAccess = hasActiveSub && !u.paypal_sub_id && Boolean(u.comp_until);
 
   const memberOnlyCount = (workspace?.members ?? []).filter((m) => !m.is_admin).length;
   const isWorkspaceAdminTier =
@@ -82,7 +81,7 @@ export default function Billing() {
             Subscribe
           </p>
           <p style={{ fontSize: 13, color: 'var(--color-text-dim)', margin: '0 0 12px' }}>
-            Pick a plan to keep your access after the trial ends.
+            Pick a plan to get started.
           </p>
           <Link to="/pricing" className="trial-banner-cta">See plans &rarr;</Link>
         </Card>

@@ -22,8 +22,6 @@ vi.mock('@/hooks/useUserMe', () => ({
     error: null,
     isEligibleToRefer: false,
     hasActiveSubscription: false,
-    inDemoWindow: false,
-    inTrialWindow: false,
     hasAccess: false,
     refresh: vi.fn(),
   }),

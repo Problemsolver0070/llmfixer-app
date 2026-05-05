@@ -176,7 +176,7 @@ describe('SignUpForm', () => {
         }),
       );
       await waitFor(() =>
-        expect(screen.getByText(/12-hour demo started/i)).toBeInTheDocument(),
+        expect(screen.getByText(/access granted/i)).toBeInTheDocument(),
       );
     });
 
