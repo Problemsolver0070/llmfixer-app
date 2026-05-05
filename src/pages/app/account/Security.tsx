@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { RecoveryCodes } from '@/components/account/RecoveryCodes';
 import { mintRecoveryCodes, type MintResponse } from '@/hooks/useMfaRecovery';
+import { resolveNextDestination } from '@/lib/next-redirect';
 import { supabase } from '@/lib/supabase';
 
 interface EnrolledFactor {
@@ -18,7 +19,7 @@ interface EnrolledFactor {
 
 interface PendingEnrollment {
   factorId: string;
-  qrSvg: string;
+  qrDataUrl: string;
   secret: string;
   otpauthUri: string;
 }
@@ -95,10 +96,13 @@ export default function Security() {
         throw new Error('Enrollment did not return a factor id.');
       }
       const otpauthUri = totp.uri ?? totp.qr_code;
-      const qrSvg = await QRCode.toString(otpauthUri, { type: 'svg', margin: 1, width: 220 });
+      // Render the QR as a data: PNG and inject via <img src>, never
+      // raw SVG. See F25: avoiding any innerHTML sink keeps the qrcode
+      // package's output out of the live DOM tree.
+      const qrDataUrl = await QRCode.toDataURL(otpauthUri, { margin: 1, width: 220 });
       setPending({
         factorId: data.id,
-        qrSvg,
+        qrDataUrl,
         secret: totp.secret,
         otpauthUri,
       });
@@ -153,13 +157,22 @@ export default function Security() {
       } catch {
         // Swallowed: TOTP enrollment still succeeded.
       }
-      if (returnPath && returnPath.startsWith('/app/')) {
-        // Give the user a beat to read the confirmation AND save the
-        // recovery codes before we bounce back to the admin page that
-        // sent them here.
-        setTimeout(() => {
-          window.location.assign(returnPath);
-        }, 1500);
+      // Give the user a beat to read the confirmation AND save the
+      // recovery codes before we bounce back to the admin page that
+      // sent them here. Validate the `?return=` param via the shared
+      // resolver so an attacker-controlled query param cannot redirect
+      // the user off-origin.
+      if (returnPath) {
+        const validated = resolveNextDestination(returnPath);
+        // Only auto-redirect when the param actually matched a valid
+        // app path; the fallback ('/app/dashboard') means the param was
+        // poisoned, in which case staying on /app/account/security is
+        // the safer behaviour.
+        if (validated !== '/app/dashboard') {
+          setTimeout(() => {
+            window.location.assign(validated);
+          }, 1500);
+        }
       }
     } catch (err) {
       setVerifyError(errorMessage(err));
@@ -258,8 +271,15 @@ export default function Security() {
                 width: 'fit-content',
                 marginBottom: 12,
               }}
-              dangerouslySetInnerHTML={{ __html: pending.qrSvg }}
-            />
+            >
+              <img
+                src={pending.qrDataUrl}
+                alt="MFA QR code"
+                width={220}
+                height={220}
+                style={{ display: 'block' }}
+              />
+            </div>
             <p
               style={{
                 fontSize: 11,
