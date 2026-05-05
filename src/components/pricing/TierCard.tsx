@@ -8,12 +8,19 @@ export interface TierCardProps {
   ctaLabel: string;
   onCtaClick: () => void;
   ctaQuiet?: boolean;
+  // Launch-promo strikethrough. When introPromoActive is true and
+  // originalPrice is provided, renders the original price with a
+  // strikethrough and a "50% OFF" badge below the headline price.
+  originalPrice?: string;
+  introPromoActive?: boolean;
 }
 
 export function TierCard({
   name, price, period, tagline, features,
   extraSeat, ctaLabel, onCtaClick, ctaQuiet,
+  originalPrice, introPromoActive,
 }: TierCardProps) {
+  const showPromo = Boolean(introPromoActive && originalPrice);
   return (
     <article className="pricing-tier" data-tier={name.toLowerCase()}>
       <div className="pricing-tier-head">
@@ -22,6 +29,29 @@ export function TierCard({
           <span className="pricing-tier-price">{price}</span>
           {period ? <span className="pricing-tier-period">{period}</span> : null}
         </div>
+        {showPromo ? (
+          <div
+            className="pricing-tier-promo"
+            data-testid={`pricing-tier-${name.toLowerCase()}-promo`}
+            style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 4 }}
+          >
+            <span style={{ textDecoration: 'line-through', opacity: 0.6, fontSize: 13 }}>
+              {originalPrice}
+            </span>
+            <span
+              style={{
+                color: 'var(--color-accent-copper-bright)',
+                fontSize: 11,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                border: '1px solid var(--color-accent-copper)',
+                padding: '2px 7px',
+              }}
+            >
+              50% off launch
+            </span>
+          </div>
+        ) : null}
         <p className="pricing-tier-tagline">{tagline}</p>
       </div>
 

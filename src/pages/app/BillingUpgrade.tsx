@@ -3,20 +3,11 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { CadenceToggle, type Cadence } from '@/components/pricing/CadenceToggle';
 import { PlanPicker } from '@/components/pricing/PlanPicker';
 import { CascadeCancelDialog } from '@/components/workspace/CascadeCancelDialog';
-import { HostedPaypalButton } from '@/components/billing/HostedPaypalButton';
+import { PayPalSubscribeButton } from '@/components/billing/PayPalSubscribeButton';
 import { usePlans } from '@/hooks/usePlans';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAccount } from '@/hooks/useAccount';
 import { useWorkspace } from '@/hooks/useWorkspace';
-
-// SKU -> PayPal Hosted Button id. Each entry is a button created in
-// the PayPal merchant dashboard ("Manage Hosted Buttons"). Only the
-// SKUs listed here can be self-served from /app/billing/upgrade;
-// other SKUs render a "contact support" notice. Add new entries when
-// the corresponding hosted buttons exist on PayPal's side.
-const HOSTED_BUTTON_BY_SKU: Record<string, string> = {
-  'solo-weekly': '27X5L7LRWJCUJ',
-};
 
 export default function BillingUpgrade() {
   const [params] = useSearchParams();
@@ -46,7 +37,12 @@ export default function BillingUpgrade() {
     workspace?.viewer_role === 'admin' && (workspace?.plan_id ?? '').startsWith('workspace-');
   const downgradingToSolo = sku.startsWith('solo-') && (currentSku ?? '').startsWith('workspace-');
   const cascadeNeeded = isWorkspaceAdminTier && memberOnlyCount > 0 && downgradingToSolo;
-  const hostedButtonId = HOSTED_BUTTON_BY_SKU[sku];
+  // Solo SKUs subscribe via the PayPal SDK Subscribe Button (real
+  // recurring subscription). Workspace SKUs are not yet self-serve
+  // because the workspace management page (Tasks 13-17 of A.2.b plan)
+  // has not shipped; they fall through to the "contact us" notice.
+  const canSelfServeSubscribe = tier === 'solo' && Boolean(selectedPlan?.paypal_plan_id);
+  const introPromoActive = Boolean(selectedPlan?.intro_promo_active);
 
   async function commitChangePlan(): Promise<void> {
     setSubmitting('changing');
@@ -105,6 +101,29 @@ export default function BillingUpgrade() {
         </div>
       ) : null}
 
+      {!hasSubscription && introPromoActive ? (
+        <div
+          data-testid="launch-promo-banner"
+          style={{
+            border: '1px solid var(--color-accent-copper)',
+            padding: '12px 16px',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+          }}
+        >
+          <strong style={{ color: 'var(--color-accent-copper-bright)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            50% off launch pricing
+          </strong>
+          <span style={{ color: 'var(--color-text-dim)' }}>
+            Founding members lock in the discount for the lifetime of their subscription.
+            Cancel anytime, no questions asked.
+          </span>
+        </div>
+      ) : null}
+
       <CadenceToggle cadence={cadence} onChange={(c) => { setCadence(c); }} />
 
       <PlanPicker
@@ -139,22 +158,33 @@ export default function BillingUpgrade() {
           <Link to="/app/billing" style={{ color: 'var(--color-text-dim)', fontSize: 12, letterSpacing: '0.06em' }}>Cancel</Link>
         </div>
       ) : selectedPlan ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 420 }}>
           <p style={{ color: 'var(--color-text-dim)', fontSize: 12, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em', margin: 0 }}>
             Subscribing to <strong style={{ color: 'var(--color-text)' }}>{selectedPlan.display_price}</strong>
+            {introPromoActive && selectedPlan.original_display_price ? (
+              <>
+                {' '}(was{' '}
+                <span style={{ textDecoration: 'line-through' }}>{selectedPlan.original_display_price}</span>)
+              </>
+            ) : null}
             {tier === 'workspace' ? <> with <strong style={{ color: 'var(--color-text)' }}>{seats} seats</strong></> : null}
           </p>
-          {hostedButtonId ? (
+          {canSelfServeSubscribe && selectedPlan ? (
             <>
               <p style={{ color: 'var(--color-text-dim)', fontSize: 11, fontFamily: 'var(--font-mono)', margin: 0 }}>
-                Pay with the email you signed up with.
+                Pay with the email you signed up with. First {selectedPlan.trial_days}-day{selectedPlan.trial_days === 1 ? '' : 's'} are free, no charge until then.
               </p>
-              <HostedPaypalButton hostedButtonId={hostedButtonId} />
+              <PayPalSubscribeButton
+                paypalPlanId={selectedPlan.paypal_plan_id}
+                planSku={sku}
+                seatCount={seats}
+                onActivated={() => setSubmitting('done')}
+              />
             </>
           ) : (
             <p style={{ color: 'var(--color-text-dim)', fontSize: 13, margin: 0 }}>
-              The {sku} plan is not available for self-service yet. Pick the
-              weekly solo plan to subscribe today, or email
+              The {sku} plan is not available for self-service yet. Pick a
+              solo plan to subscribe today, or email
               venu-kumar@thefixer.in for a custom invoice.
             </p>
           )}

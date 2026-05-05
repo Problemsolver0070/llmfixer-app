@@ -15,10 +15,17 @@ vi.mock('@/lib/api', () => {
   return { api: vi.fn(async () => ({})), ApiError };
 });
 
-vi.mock('@/components/billing/HostedPaypalButton', () => ({
-  HostedPaypalButton: ({ hostedButtonId }: { hostedButtonId: string }) => (
-    <div data-testid="hosted-paypal-button" data-button-id={hostedButtonId}>
-      PayPal Hosted Button: {hostedButtonId}
+vi.mock('@/components/billing/PayPalSubscribeButton', () => ({
+  PayPalSubscribeButton: ({
+    paypalPlanId, planSku, seatCount,
+  }: { paypalPlanId: string; planSku: string; seatCount: number }) => (
+    <div
+      data-testid="paypal-subscribe-button"
+      data-plan-id={paypalPlanId}
+      data-plan-sku={planSku}
+      data-seat-count={seatCount}
+    >
+      PayPal Subscribe: {planSku} / {paypalPlanId}
     </div>
   ),
 }));
@@ -29,14 +36,19 @@ vi.mock('@/hooks/usePlans', () => ({
   usePlans: () => ({
     plans: [
       { sku: 'solo-weekly', tier: 'solo', cadence: 'weekly', paypal_plan_id: 'P-SW',
-        base_price_cents: 1999, per_seat_price_cents: null, included_seats: 1,
-        display_price: '$19.99 / week', discount_pct: 0, trial_days: 2 },
+        base_price_cents: 999, per_seat_price_cents: null, included_seats: 1,
+        display_price: '$9.99 / week', discount_pct: 0, trial_days: 1,
+        original_price_cents: 1999, original_display_price: '$19.99 / week',
+        intro_promo_active: true },
       { sku: 'solo-monthly', tier: 'solo', cadence: 'monthly', paypal_plan_id: 'P-SM',
-        base_price_cents: 7900, per_seat_price_cents: null, included_seats: 1,
-        display_price: '$79 / month', discount_pct: 9, trial_days: 2 },
+        base_price_cents: 3950, per_seat_price_cents: null, included_seats: 1,
+        display_price: '$39.50 / month', discount_pct: 9, trial_days: 1,
+        original_price_cents: 7900, original_display_price: '$79 / month',
+        intro_promo_active: true },
       { sku: 'workspace-monthly', tier: 'workspace', cadence: 'monthly', paypal_plan_id: 'P-WM',
         base_price_cents: 15900, per_seat_price_cents: 4900, included_seats: 4,
-        display_price: '$159 / month', discount_pct: 9, trial_days: 2 },
+        display_price: '$159 / month', discount_pct: 9, trial_days: 1,
+        intro_promo_active: false },
     ],
     loading: false, error: null, refresh: vi.fn(),
   }),
@@ -100,23 +112,35 @@ describe('BillingUpgrade', () => {
     await waitFor(() => expect(changePlan).toHaveBeenCalledWith('solo-weekly', 1));
   });
 
-  it('renders the hosted PayPal button when account has no existing subscription and SKU is solo-weekly', () => {
+  it('renders the PayPal Subscribe button for a solo SKU when account has no existing subscription', () => {
     useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
     expect(screen.getByText(/Pick a plan/)).toBeInTheDocument();
     expect(screen.getByText(/Start with a 24-hour free trial/)).toBeInTheDocument();
-    const button = screen.getByTestId('hosted-paypal-button');
-    expect(button).toBeInTheDocument();
-    expect(button).toHaveAttribute('data-button-id', '27X5L7LRWJCUJ');
+    const btn = screen.getByTestId('paypal-subscribe-button');
+    expect(btn).toBeInTheDocument();
+    expect(btn).toHaveAttribute('data-plan-id', 'P-SW');
+    expect(btn).toHaveAttribute('data-plan-sku', 'solo-weekly');
+    expect(btn).toHaveAttribute('data-seat-count', '1');
     expect(screen.queryByRole('button', { name: /confirm change/i })).not.toBeInTheDocument();
   });
 
-  it('renders the unavailable-plan notice when no hosted button exists for the SKU', () => {
+  it('renders the launch promo banner when an intro_promo_active solo plan is selected', () => {
     useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
-    render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-monthly"]}><BillingUpgrade /></MemoryRouter>);
-    expect(screen.queryByTestId('hosted-paypal-button')).not.toBeInTheDocument();
+    render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+    const banner = screen.getByTestId('launch-promo-banner');
+    expect(banner).toBeInTheDocument();
+    expect(banner).toHaveTextContent(/50% off launch pricing/i);
+    expect(banner).toHaveTextContent(/Founding members lock in the discount/i);
+  });
+
+  it('renders the unavailable-plan notice for a workspace SKU (not self-serve yet)', () => {
+    useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+    useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+    render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=workspace-monthly"]}><BillingUpgrade /></MemoryRouter>);
+    expect(screen.queryByTestId('paypal-subscribe-button')).not.toBeInTheDocument();
     expect(screen.getByText(/not available for self-service yet/)).toBeInTheDocument();
   });
 

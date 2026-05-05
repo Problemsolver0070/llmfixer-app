@@ -40,7 +40,10 @@ function pickPlan(plans: Plan[], tier: 'solo' | 'workspace', cadence: Cadence): 
 
 function priceParts(plan: Plan | undefined): { price: string; period: string } {
   if (!plan) return { price: '...', period: '' };
-  const display = plan.display_price;
+  return splitDisplayPrice(plan.display_price);
+}
+
+function splitDisplayPrice(display: string): { price: string; period: string } {
   const splitPoint = display.indexOf(' / ');
   if (splitPoint === -1) return { price: display, period: '' };
   const headline = display.slice(0, splitPoint);
@@ -49,6 +52,14 @@ function priceParts(plan: Plan | undefined): { price: string; period: string } {
     ? display.slice(splitPoint + 1)
     : display.slice(splitPoint + 1, periodEnd);
   return { price: headline, period: periodSlice };
+}
+
+function originalPriceHeadline(plan: Plan | undefined): string | undefined {
+  if (!plan?.intro_promo_active || !plan.original_display_price) return undefined;
+  // Render the headline of the original price (e.g. "$19.99") for the
+  // strikethrough; we keep the period from the discounted price so the
+  // headline stays compact.
+  return splitDisplayPrice(plan.original_display_price).price;
 }
 
 function extraSeatParts(plan: Plan | undefined): { price: string; period: string; minSeats: number } | undefined {
@@ -122,6 +133,8 @@ export default function Pricing() {
             name="Solo"
             price={soloParts.price}
             period={soloParts.period}
+            originalPrice={originalPriceHeadline(solo)}
+            introPromoActive={solo?.intro_promo_active}
             tagline={SOLO_TAGLINE}
             features={SOLO_FEATURES}
             ctaLabel="Start 24-hour trial"
@@ -131,6 +144,8 @@ export default function Pricing() {
             name="Workspace"
             price={workspaceParts.price}
             period={workspaceParts.period}
+            originalPrice={originalPriceHeadline(workspace)}
+            introPromoActive={workspace?.intro_promo_active}
             tagline={WORKSPACE_TAGLINE}
             features={WORKSPACE_FEATURES}
             extraSeat={extraSeatParts(workspace)}
