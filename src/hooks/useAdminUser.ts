@@ -31,10 +31,8 @@ export interface AdminUserDetail {
 
 export interface StateOverrideInput {
   comp_until?: string | null;
-  trial_ends_at?: string | null;
   status?: string;
   set_comp_until_to_null?: boolean;
-  set_trial_ends_at_to_null?: boolean;
   reason: string;
 }
 
