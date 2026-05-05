@@ -11,4 +11,9 @@ export default defineConfig({
     },
   },
   server: { port: 3000 },
+  // F52: explicit sourcemap=false. Vite's production default is already
+  // false, but pinning protects against an upstream default change or a
+  // plugin that flips it on. Sourcemaps would expose the unminified
+  // component graph to anyone hitting dist/.
+  build: { sourcemap: false },
 });
