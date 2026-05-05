@@ -45,10 +45,12 @@ export function SignInForm({ inviteToken }: { inviteToken?: string | null } = {}
   // cross-subdomain redirects (e.g. chat.thefixer.in click-through).
   // When the admin gate sent us here (mfa_required=1), prefer ?return=
   // because we want to bounce back to the exact admin page after step-up.
+  // Both `?return=` and `?next=` go through resolveNextDestination so the
+  // same allowlist applies to every post-auth redirect sink.
   const successPath = inviteToken
     ? `/app/workspace/accept?token=${encodeURIComponent(inviteToken)}`
-    : mfaRequired && returnParam && returnParam.startsWith('/app/')
-      ? returnParam
+    : mfaRequired && returnParam
+      ? resolveNextDestination(returnParam)
       : resolveNextDestination(searchParams.get('next'));
 
   function navigateAfterSuccess() {

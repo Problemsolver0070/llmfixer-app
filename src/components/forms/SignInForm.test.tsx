@@ -219,6 +219,95 @@ describe('SignInForm', () => {
       await waitFor(() => expect(navigate).toHaveBeenCalledWith('/app/admin/promos'));
     });
 
+    it('routes to /app/dashboard fallback when ?return= is poisoned (//evil)', async () => {
+      // F27: `?return=` must go through resolveNextDestination just like
+      // `?next=`. A protocol-relative URL must fall back to the dashboard.
+      signInWithPassword.mockResolvedValue({ data: {}, error: null });
+      listFactors.mockResolvedValue({
+        data: {
+          all: [
+            {
+              id: 'factor-1',
+              factor_type: 'totp',
+              status: 'verified',
+              created_at: '2026-05-03T00:00:00Z',
+            },
+          ],
+        },
+        error: null,
+      });
+      challenge.mockResolvedValue({ data: { id: 'chal-1' }, error: null });
+      verifyMfa.mockResolvedValue({ data: {}, error: null });
+
+      renderForm('/login?mfa_required=1&return=%2F%2Fevil.com%2Fpath');
+      await userEvent.type(screen.getByLabelText(/email/i), 'admin@x.com');
+      await userEvent.type(screen.getByLabelText(/password/i), 'secret123');
+      await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+      await screen.findByLabelText(/6-digit code/i);
+      await userEvent.type(screen.getByLabelText(/6-digit code/i), '424242');
+      await userEvent.click(screen.getByRole('button', { name: /verify/i }));
+      await waitFor(() => expect(navigate).toHaveBeenCalledWith('/app/dashboard'));
+    });
+
+    it('routes to /app/dashboard fallback when ?return= encodes // inside /app/', async () => {
+      // F27: `?return=/app/%2F%2Fevil.com` is a same-origin path that
+      // decodes to `/app///evil.com` — must reject.
+      signInWithPassword.mockResolvedValue({ data: {}, error: null });
+      listFactors.mockResolvedValue({
+        data: {
+          all: [
+            {
+              id: 'factor-1',
+              factor_type: 'totp',
+              status: 'verified',
+              created_at: '2026-05-03T00:00:00Z',
+            },
+          ],
+        },
+        error: null,
+      });
+      challenge.mockResolvedValue({ data: { id: 'chal-1' }, error: null });
+      verifyMfa.mockResolvedValue({ data: {}, error: null });
+
+      renderForm('/login?mfa_required=1&return=%2Fapp%2F%252F%252Fevil.com');
+      await userEvent.type(screen.getByLabelText(/email/i), 'admin@x.com');
+      await userEvent.type(screen.getByLabelText(/password/i), 'secret123');
+      await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+      await screen.findByLabelText(/6-digit code/i);
+      await userEvent.type(screen.getByLabelText(/6-digit code/i), '424242');
+      await userEvent.click(screen.getByRole('button', { name: /verify/i }));
+      await waitFor(() => expect(navigate).toHaveBeenCalledWith('/app/dashboard'));
+    });
+
+    it('routes to /app/dashboard fallback when ?return= is non-/app/ path', async () => {
+      // F27: `?return=/admin` (or any non-/app/) must reject.
+      signInWithPassword.mockResolvedValue({ data: {}, error: null });
+      listFactors.mockResolvedValue({
+        data: {
+          all: [
+            {
+              id: 'factor-1',
+              factor_type: 'totp',
+              status: 'verified',
+              created_at: '2026-05-03T00:00:00Z',
+            },
+          ],
+        },
+        error: null,
+      });
+      challenge.mockResolvedValue({ data: { id: 'chal-1' }, error: null });
+      verifyMfa.mockResolvedValue({ data: {}, error: null });
+
+      renderForm('/login?mfa_required=1&return=%2Fadmin');
+      await userEvent.type(screen.getByLabelText(/email/i), 'admin@x.com');
+      await userEvent.type(screen.getByLabelText(/password/i), 'secret123');
+      await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+      await screen.findByLabelText(/6-digit code/i);
+      await userEvent.type(screen.getByLabelText(/6-digit code/i), '424242');
+      await userEvent.click(screen.getByRole('button', { name: /verify/i }));
+      await waitFor(() => expect(navigate).toHaveBeenCalledWith('/app/dashboard'));
+    });
+
     it('shows an error on bad totp code', async () => {
       signInWithPassword.mockResolvedValue({ data: {}, error: null });
       listFactors.mockResolvedValue({
