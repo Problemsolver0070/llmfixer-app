@@ -69,4 +69,41 @@ describe('resolveNextDestination', () => {
   it('rejects unparseable strings', () => {
     expect(resolveNextDestination('not a url')).toBe('/app/dashboard');
   });
+
+  // --- F27 hardening: every redirect sink must route ?return= and ?next=
+  // through this validator so we can never regress to the inline
+  // `startsWith('/app/')` check that earlier shipped in SignInForm.tsx
+  // and Security.tsx.
+
+  it('rejects non-/app/ same-origin paths (negative case)', () => {
+    expect(resolveNextDestination('/non-app')).toBe('/app/dashboard');
+    expect(resolveNextDestination('/account/security')).toBe('/app/dashboard');
+  });
+
+  it('rejects percent-encoded protocol-relative payloads inside /app/', () => {
+    // `%2F%2F` decodes to `//`, which the browser would route off-origin.
+    expect(resolveNextDestination('/app/%2F%2Fevil.com')).toBe('/app/dashboard');
+    expect(resolveNextDestination('/app/x/%2F%2Fevil.com')).toBe('/app/dashboard');
+    // path-with-host shape `/app/%2F%2Fevil.com/path`
+    expect(resolveNextDestination('/app/%2F%2Fevil.com/path')).toBe('/app/dashboard');
+  });
+
+  it('rejects backslashes anywhere in the path', () => {
+    // Browsers normalise `\` to `/`, so `/app/\\evil.com` becomes `/app///evil.com`
+    // which the URL parser sees as an authority component.
+    expect(resolveNextDestination('/app/\\\\evil.com')).toBe('/app/dashboard');
+    expect(resolveNextDestination('/app\\dashboard')).toBe('/app/dashboard');
+  });
+
+  it('rejects ASCII control characters (CR/LF/NUL/TAB/DEL)', () => {
+    expect(resolveNextDestination('/app/dashboard\r\nLocation: evil')).toBe('/app/dashboard');
+    expect(resolveNextDestination('/app/dashboard\x00')).toBe('/app/dashboard');
+    expect(resolveNextDestination('/app/\tdashboard')).toBe('/app/dashboard');
+    expect(resolveNextDestination('/app/dashboard\x7f')).toBe('/app/dashboard');
+  });
+
+  it('still accepts a clean /app/ path (positive case)', () => {
+    expect(resolveNextDestination('/app/dashboard')).toBe('/app/dashboard');
+    expect(resolveNextDestination('/app/admin/promos')).toBe('/app/admin/promos');
+  });
 });
