@@ -68,12 +68,12 @@ describe('StateOverrideCard', () => {
     render(<StateOverrideCard user={baseUser} onSubmit={onSubmit} />);
     await userEvent.selectOptions(
       screen.getByLabelText(/^status$/i),
-      'locked',
+      'expired',
     );
     await userEvent.type(screen.getByLabelText(/reason/i), 'fraud');
     await userEvent.click(screen.getByRole('button', { name: /save state/i }));
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
-    expect(onSubmit).toHaveBeenCalledWith({ status: 'locked', reason: 'fraud' });
+    expect(onSubmit).toHaveBeenCalledWith({ status: 'expired', reason: 'fraud' });
   });
 
   it('surfaces backend errors', async () => {
@@ -81,7 +81,7 @@ describe('StateOverrideCard', () => {
     render(<StateOverrideCard user={baseUser} onSubmit={onSubmit} />);
     await userEvent.selectOptions(
       screen.getByLabelText(/^status$/i),
-      'locked',
+      'expired',
     );
     await userEvent.type(screen.getByLabelText(/reason/i), 'r');
     await userEvent.click(screen.getByRole('button', { name: /save state/i }));

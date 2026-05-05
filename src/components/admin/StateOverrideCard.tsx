@@ -7,14 +7,10 @@ import type {
   StateOverrideInput,
 } from '@/hooks/useAdminUser';
 
-const STATUS_OPTIONS = [
-  'pending',
-  'trialing',
-  'active',
-  'past_due',
-  'canceled',
-  'locked',
-];
+// Mirrors the backend CHECK constraint on `users.status` (binary access
+// state since 2026-05-05). Picking any value outside this set 422s at
+// the StateOverrideBody Pydantic layer.
+const STATUS_OPTIONS = ['active', 'expired'];
 
 interface Props {
   user: AdminUserDetail;
@@ -40,21 +36,17 @@ function localInputToIso(value: string): string {
 /**
  * State controls form for the admin UserDetail Overview tab.
  *
- * Backs `POST /v1/admin/users/{user_id}/state-override`. Each nullable field
- * (`comp_until`, `trial_ends_at`) has an explicit "clear" toggle; when the
- * toggle is on the form sends `set_*_to_null: true` instead of a value, so the
- * backend can distinguish "leave alone" from "clear". `status` is a select.
- * `reason` is required to match the rest of the admin surface.
+ * Backs `POST /v1/admin/users/{user_id}/state-override`. The backend
+ * accepts `comp_until` (with an explicit clear toggle) and `status`
+ * (active | expired). `reason` is required to match the rest of the
+ * admin surface. The trial_ends_at field is gone since the
+ * 2026-05-05 trial-kill collapse.
  */
 export function StateOverrideCard({ user, onSubmit, onSaved }: Props) {
   const [compUntil, setCompUntil] = useState<string>(
     isoToLocalInput(user.comp_until),
   );
   const [clearComp, setClearComp] = useState<boolean>(false);
-  const [trialEndsAt, setTrialEndsAt] = useState<string>(
-    isoToLocalInput(user.trial_ends_at),
-  );
-  const [clearTrial, setClearTrial] = useState<boolean>(false);
   const [status, setStatus] = useState<string>(user.status);
   const [reason, setReason] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -76,15 +68,6 @@ export function StateOverrideCard({ user, onSubmit, onSaved }: Props) {
       body.comp_until = localInputToIso(compUntil);
     }
 
-    if (clearTrial) {
-      body.set_trial_ends_at_to_null = true;
-    } else if (
-      trialEndsAt &&
-      trialEndsAt !== isoToLocalInput(user.trial_ends_at)
-    ) {
-      body.trial_ends_at = localInputToIso(trialEndsAt);
-    }
-
     if (status !== user.status) {
       body.status = status;
     }
@@ -92,8 +75,6 @@ export function StateOverrideCard({ user, onSubmit, onSaved }: Props) {
     const hasChange =
       body.comp_until !== undefined ||
       body.set_comp_until_to_null === true ||
-      body.trial_ends_at !== undefined ||
-      body.set_trial_ends_at_to_null === true ||
       body.status !== undefined;
 
     if (!hasChange) {
@@ -106,7 +87,6 @@ export function StateOverrideCard({ user, onSubmit, onSaved }: Props) {
       await onSubmit(body);
       setReason('');
       setClearComp(false);
-      setClearTrial(false);
       onSaved?.();
     } catch (e) {
       setError((e as Error).message);
@@ -138,24 +118,6 @@ export function StateOverrideCard({ user, onSubmit, onSaved }: Props) {
               onChange={(e) => setClearComp(e.currentTarget.checked)}
             />
             <span>Clear comp_until (set to null)</span>
-          </label>
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <Input
-            label="Trial ends at"
-            type="datetime-local"
-            value={trialEndsAt}
-            onChange={(e) => setTrialEndsAt(e.currentTarget.value)}
-            disabled={clearTrial}
-          />
-          <label style={inlineToggleStyle}>
-            <input
-              type="checkbox"
-              checked={clearTrial}
-              onChange={(e) => setClearTrial(e.currentTarget.checked)}
-            />
-            <span>Clear trial_ends_at (set to null)</span>
           </label>
         </div>
 
