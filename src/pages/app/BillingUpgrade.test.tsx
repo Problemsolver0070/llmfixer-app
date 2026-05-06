@@ -164,17 +164,12 @@ describe('BillingUpgrade', () => {
     await waitFor(() => expect(changePlan).toHaveBeenCalledWith('solo-weekly', 1));
   });
 
-  it('renders the PayPal Subscribe button for a solo SKU when account has no existing subscription', () => {
+  it('does not render any PayPal subscribe button on the new-subscription path (post-teardown)', () => {
     useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
     expect(screen.getByRole('heading', { name: /Pick a plan/ })).toBeInTheDocument();
-    expect(screen.getByText(/Pick a plan to subscribe/)).toBeInTheDocument();
-    const btn = screen.getByTestId('paypal-subscribe-button');
-    expect(btn).toBeInTheDocument();
-    expect(btn).toHaveAttribute('data-plan-id', 'P-SW');
-    expect(btn).toHaveAttribute('data-plan-sku', 'solo-weekly');
-    expect(btn).toHaveAttribute('data-seat-count', '1');
+    expect(screen.queryByTestId('paypal-subscribe-button')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /confirm change/i })).not.toBeInTheDocument();
   });
 
@@ -188,14 +183,14 @@ describe('BillingUpgrade', () => {
     expect(banner).toHaveTextContent(/Founding members lock in the discount/i);
   });
 
-  it('renders the workspace fallback notice and the crypto alt-payment button for a workspace SKU', () => {
+  it('renders crypto + razorpay buttons on a workspace monthly SKU (no PayPal post-teardown)', () => {
     useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=workspace-monthly"]}><BillingUpgrade /></MemoryRouter>);
-    // PayPal stays Solo-only on the upgrade page.
     expect(screen.queryByTestId('paypal-subscribe-button')).not.toBeInTheDocument();
-    expect(screen.getByText(/not available for PayPal self-service yet/)).toBeInTheDocument();
-    // Crypto button is the workspace path forward; Razorpay rejects workspace tiers.
+    // Crypto button is the workspace path forward; Razorpay short-circuits
+    // workspace tiers with a coming-soon notice on click (covered separately
+    // in the alt-payment describe block below).
     expect(screen.getByTestId('pay-with-crypto-button')).toBeInTheDocument();
     expect(screen.getByTestId('pay-with-razorpay-button')).toBeInTheDocument();
   });
@@ -213,20 +208,20 @@ describe('BillingUpgrade', () => {
       razorpayMutate.mockReset();
     });
 
-    it('renders all three payment options on a solo weekly plan when the user has no subscription', () => {
+    it('renders both alt-payment buttons on a solo weekly plan (post-PayPal-teardown)', () => {
       useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
       useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
       render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
-      expect(screen.getByTestId('paypal-subscribe-button')).toBeInTheDocument();
+      expect(screen.queryByTestId('paypal-subscribe-button')).not.toBeInTheDocument();
       expect(screen.getByTestId('pay-with-crypto-button')).toBeInTheDocument();
       expect(screen.getByTestId('pay-with-razorpay-button')).toBeInTheDocument();
     });
 
-    it('renders all three payment options on a solo monthly plan as well', () => {
+    it('renders both alt-payment buttons on a solo monthly plan as well', () => {
       useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
       useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
       render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-monthly"]}><BillingUpgrade /></MemoryRouter>);
-      expect(screen.getByTestId('paypal-subscribe-button')).toBeInTheDocument();
+      expect(screen.queryByTestId('paypal-subscribe-button')).not.toBeInTheDocument();
       expect(screen.getByTestId('pay-with-crypto-button')).toBeInTheDocument();
       expect(screen.getByTestId('pay-with-razorpay-button')).toBeInTheDocument();
     });
