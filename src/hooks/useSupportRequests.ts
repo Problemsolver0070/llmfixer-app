@@ -133,14 +133,20 @@ export function useSupportRequests(
       const params = new URLSearchParams();
       params.set('limit', String(limit));
       params.set('offset', String(offset));
-      const res = await api<SupportRequest[] | { rows: SupportRequest[] }>(
+      const res = await api<
+        | SupportRequest[]
+        | { items?: SupportRequest[]; rows?: SupportRequest[] }
+      >(
         `/v1/support/requests?${params.toString()}`,
         { signal: ctrl.signal },
       );
       if (ctrl.signal.aborted) return;
-      // The spec leaves the envelope shape implicit; accept both bare arrays
-      // and a `{rows: []}` wrapper so the hook stays robust to either.
-      const rows = Array.isArray(res) ? res : (res?.rows ?? []);
+      // Backend returns the {items, total, limit, offset} envelope per the
+      // SupportRequestListResponse schema. Accept bare arrays and the older
+      // {rows: []} envelope too so the hook stays robust to shape drift.
+      const rows = Array.isArray(res)
+        ? res
+        : (res?.items ?? res?.rows ?? []);
       setData(rows);
     } catch (e) {
       if (ctrl.signal.aborted) return;
