@@ -14,6 +14,7 @@ import {
 const BASE_TABS_BEFORE_WORKSPACE = [
   { to: '/app/dashboard', label: 'Dashboard' },
   { to: '/app/setup', label: 'Setup' },
+  { to: '/app/support', label: 'Support' },
   { to: '/app/models', label: 'Models' },
   { to: '/app/keys', label: 'Keys' },
 ];
