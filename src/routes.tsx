@@ -17,6 +17,7 @@ import Dashboard from '@/pages/app/Dashboard';
 import Setup from '@/pages/app/Setup';
 import { Models } from '@/pages/app/Models';
 import Keys from '@/pages/app/Keys';
+import Support from '@/pages/app/Support';
 import Billing from '@/pages/app/Billing';
 import BillingUpgrade from '@/pages/app/BillingUpgrade';
 import Workspace from '@/pages/app/Workspace';
@@ -65,6 +66,7 @@ export const routes: RouteObject[] = [
       { path: 'setup', element: <TrialGate><Setup /></TrialGate> },
       { path: 'models', element: <TrialGate><Models /></TrialGate> },
       { path: 'keys', element: <TrialGate><Keys /></TrialGate> },
+      { path: 'support', Component: Support },
       { path: 'workspace', Component: Workspace },
       { path: 'workspace/accept', Component: WorkspaceAccept },
       { path: 'billing', Component: Billing },
