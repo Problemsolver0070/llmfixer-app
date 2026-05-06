@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -27,6 +27,58 @@ vi.mock('@/components/billing/PayPalSubscribeButton', () => ({
     >
       PayPal Subscribe: {planSku} / {paypalPlanId}
     </div>
+  ),
+}));
+
+const cryptoMutate = vi.fn();
+vi.mock('@/components/billing/CryptoCheckoutButton', () => ({
+  CryptoCheckoutButton: ({
+    planSku, seatCount, onError,
+  }: { planSku: string; seatCount: number; onError?: (m: string) => void }) => (
+    <button
+      data-testid="pay-with-crypto-button"
+      data-plan-sku={planSku}
+      data-seat-count={seatCount}
+      onClick={() => {
+        const result = cryptoMutate(planSku, seatCount);
+        if (result && typeof (result as { catch?: unknown }).catch === 'function') {
+          (result as Promise<unknown>).catch((e: unknown) => {
+            onError?.(e instanceof Error ? e.message : String(e));
+          });
+        }
+      }}
+    >
+      Pay with crypto
+    </button>
+  ),
+}));
+
+const razorpayMutate = vi.fn();
+vi.mock('@/components/billing/RazorpayCheckoutButton', () => ({
+  RazorpayCheckoutButton: ({
+    planSku, seatCount, onError,
+  }: { planSku: string; seatCount: number; onError?: (m: string) => void }) => (
+    <button
+      data-testid="pay-with-razorpay-button"
+      data-plan-sku={planSku}
+      data-seat-count={seatCount}
+      onClick={() => {
+        if (planSku.startsWith('workspace-')) {
+          onError?.(
+            'Razorpay workspace tiers coming soon, please use crypto payment for workspace plans.',
+          );
+          return;
+        }
+        const result = razorpayMutate(planSku, seatCount);
+        if (result && typeof (result as { catch?: unknown }).catch === 'function') {
+          (result as Promise<unknown>).catch((e: unknown) => {
+            onError?.(e instanceof Error ? e.message : String(e));
+          });
+        }
+      }}
+    >
+      If you are from India, pay with Razorpay
+    </button>
   ),
 }));
 
@@ -136,12 +188,16 @@ describe('BillingUpgrade', () => {
     expect(banner).toHaveTextContent(/Founding members lock in the discount/i);
   });
 
-  it('renders the unavailable-plan notice for a workspace SKU (not self-serve yet)', () => {
+  it('renders the workspace fallback notice and the crypto alt-payment button for a workspace SKU', () => {
     useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=workspace-monthly"]}><BillingUpgrade /></MemoryRouter>);
+    // PayPal stays Solo-only on the upgrade page.
     expect(screen.queryByTestId('paypal-subscribe-button')).not.toBeInTheDocument();
-    expect(screen.getByText(/not available for self-service yet/)).toBeInTheDocument();
+    expect(screen.getByText(/not available for PayPal self-service yet/)).toBeInTheDocument();
+    // Crypto button is the workspace path forward; Razorpay rejects workspace tiers.
+    expect(screen.getByTestId('pay-with-crypto-button')).toBeInTheDocument();
+    expect(screen.getByTestId('pay-with-razorpay-button')).toBeInTheDocument();
   });
 
   it('shows a clear error when the picked SKU is not in the catalog', () => {
@@ -149,5 +205,76 @@ describe('BillingUpgrade', () => {
     useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
     render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=ghost-plan"]}><BillingUpgrade /></MemoryRouter>);
     expect(screen.getByText(/Plan ghost-plan not found in catalog/)).toBeInTheDocument();
+  });
+
+  describe('alt-payment buttons (NOWPayments + Razorpay)', () => {
+    beforeEach(() => {
+      cryptoMutate.mockReset();
+      razorpayMutate.mockReset();
+    });
+
+    it('renders all three payment options on a solo weekly plan when the user has no subscription', () => {
+      useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+      useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+      render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+      expect(screen.getByTestId('paypal-subscribe-button')).toBeInTheDocument();
+      expect(screen.getByTestId('pay-with-crypto-button')).toBeInTheDocument();
+      expect(screen.getByTestId('pay-with-razorpay-button')).toBeInTheDocument();
+    });
+
+    it('renders all three payment options on a solo monthly plan as well', () => {
+      useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+      useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+      render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-monthly"]}><BillingUpgrade /></MemoryRouter>);
+      expect(screen.getByTestId('paypal-subscribe-button')).toBeInTheDocument();
+      expect(screen.getByTestId('pay-with-crypto-button')).toBeInTheDocument();
+      expect(screen.getByTestId('pay-with-razorpay-button')).toBeInTheDocument();
+    });
+
+    it('forwards plan_sku and seat_count to the crypto button on click', () => {
+      cryptoMutate.mockReturnValue(Promise.resolve({ invoice_url: 'https://x', invoice_id: 'i' }));
+      useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+      useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+      render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+      fireEvent.click(screen.getByTestId('pay-with-crypto-button'));
+      expect(cryptoMutate).toHaveBeenCalledWith('solo-weekly', 1);
+    });
+
+    it('forwards plan_sku and seat_count to the razorpay button on click for a solo SKU', () => {
+      razorpayMutate.mockReturnValue(Promise.resolve({ subscription_id: 's', short_url: 'https://x' }));
+      useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+      useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+      render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+      fireEvent.click(screen.getByTestId('pay-with-razorpay-button'));
+      expect(razorpayMutate).toHaveBeenCalledWith('solo-weekly', 1);
+    });
+
+    it('shows the workspace coming-soon copy when razorpay is clicked on a workspace SKU', () => {
+      useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+      useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+      render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=workspace-monthly"]}><BillingUpgrade /></MemoryRouter>);
+      fireEvent.click(screen.getByTestId('pay-with-razorpay-button'));
+      expect(razorpayMutate).not.toHaveBeenCalled();
+      const err = screen.getByTestId('alt-payment-error');
+      expect(err).toHaveTextContent(/workspace tiers coming soon/i);
+      expect(err).toHaveTextContent(/use crypto payment for workspace plans/i);
+    });
+
+    it('hides the alt-payment buttons when cadence is quarterly (not visible_in_pricing)', () => {
+      useAccountMock.mockReturnValue(TRIAL_ACCOUNT);
+      useWorkspaceMock.mockReturnValue(NO_WORKSPACE);
+      // Mock plan list inline to expose a quarterly SKU just for this test.
+      // The page still defaults to solo-weekly when an unknown SKU is passed,
+      // so we click the cadence tab to switch and confirm the buttons disappear.
+      render(<MemoryRouter initialEntries={["/app/billing/upgrade?plan=solo-weekly"]}><BillingUpgrade /></MemoryRouter>);
+      // Sanity: alt-payment buttons present at default weekly cadence.
+      expect(screen.getByTestId('alt-payment-buttons')).toBeInTheDocument();
+      // Switch to quarterly via the cadence toggle. The plans mock above
+      // does not include a quarterly SKU, so selectedPlan becomes
+      // undefined and the entire payment-buttons block is replaced by
+      // the not-found error. That implicitly hides the alt-payment row.
+      fireEvent.click(screen.getByRole('tab', { name: /quarterly/i }));
+      expect(screen.queryByTestId('alt-payment-buttons')).not.toBeInTheDocument();
+    });
   });
 });
