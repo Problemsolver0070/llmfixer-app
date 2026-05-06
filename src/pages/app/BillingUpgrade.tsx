@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { CadenceToggle, type Cadence } from '@/components/pricing/CadenceToggle';
 import { PlanPicker } from '@/components/pricing/PlanPicker';
 import { CascadeCancelDialog } from '@/components/workspace/CascadeCancelDialog';
-import { PayPalSubscribeButton } from '@/components/billing/PayPalSubscribeButton';
 import { CryptoCheckoutButton } from '@/components/billing/CryptoCheckoutButton';
 import { RazorpayCheckoutButton } from '@/components/billing/RazorpayCheckoutButton';
 import { usePlans } from '@/hooks/usePlans';
@@ -51,11 +50,6 @@ export default function BillingUpgrade() {
     workspace?.viewer_role === 'admin' && (workspace?.plan_id ?? '').startsWith('workspace-');
   const downgradingToSolo = sku.startsWith('solo-') && (currentSku ?? '').startsWith('workspace-');
   const cascadeNeeded = isWorkspaceAdminTier && memberOnlyCount > 0 && downgradingToSolo;
-  // Solo SKUs subscribe via the PayPal SDK Subscribe Button (real
-  // recurring subscription). Workspace SKUs are not yet self-serve
-  // because the workspace management page (Tasks 13-17 of A.2.b plan)
-  // has not shipped; they fall through to the "contact us" notice.
-  const canSelfServeSubscribe = tier === 'solo' && Boolean(selectedPlan?.paypal_plan_id);
   const introPromoActive = Boolean(selectedPlan?.intro_promo_active);
 
   async function commitChangePlan(): Promise<void> {
@@ -88,10 +82,10 @@ export default function BillingUpgrade() {
       ? 'Switch to a recurring subscription'
       : 'Pick a plan';
   const headerSub = hasSubscription
-    ? 'Pick a different tier or cadence. Pro-rated by PayPal automatically.'
+    ? 'Pick a different tier or cadence. The change applies on your next billing cycle.'
     : isCompAccess
       ? 'Optional. Your access is paid through the date below, this is only for moving to a recurring subscription.'
-      : 'Pick a plan to subscribe. First charge in 24 hours.';
+      : 'Pick a plan and a payment method below.';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -181,42 +175,11 @@ export default function BillingUpgrade() {
             ) : null}
             {tier === 'workspace' ? <> with <strong style={{ color: 'var(--color-text)' }}>{seats} seats</strong></> : null}
           </p>
-          {canSelfServeSubscribe && selectedPlan ? (
-            <>
-              <p style={{ color: 'var(--color-text-dim)', fontSize: 11, fontFamily: 'var(--font-mono)', margin: 0 }}>
-                Pay with the email you signed up with. First {selectedPlan.trial_days}-day{selectedPlan.trial_days === 1 ? '' : 's'} are free, no charge until then.
-              </p>
-              <PayPalSubscribeButton
-                paypalPlanId={selectedPlan.paypal_plan_id}
-                planSku={sku}
-                seatCount={seats}
-                onActivated={() => setSubmitting('done')}
-              />
-            </>
-          ) : (
-            <p style={{ color: 'var(--color-text-dim)', fontSize: 13, margin: 0 }}>
-              The {sku} plan is not available for PayPal self-service yet.
-              Use crypto checkout below, or email
-              venu-kumar@thefixer.in for a custom invoice.
-            </p>
-          )}
-
           {ALT_PAYMENT_CADENCES.includes(cadence) ? (
             <div
               data-testid="alt-payment-buttons"
               style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
             >
-              <p
-                style={{
-                  color: 'var(--color-text-dim)',
-                  fontSize: 11,
-                  fontFamily: 'var(--font-mono)',
-                  letterSpacing: '0.06em',
-                  margin: '6px 0 0',
-                }}
-              >
-                Or pay another way:
-              </p>
               <CryptoCheckoutButton
                 planSku={sku}
                 seatCount={seats}
@@ -241,7 +204,12 @@ export default function BillingUpgrade() {
                 </p>
               ) : null}
             </div>
-          ) : null}
+          ) : (
+            <p style={{ color: 'var(--color-text-dim)', fontSize: 13, margin: 0 }}>
+              The {sku} cadence is not available on the new payment rails.
+              Email venu-kumar@thefixer.in for a custom invoice.
+            </p>
+          )}
 
           <Link to="/app/billing" style={{ color: 'var(--color-text-dim)', fontSize: 12, letterSpacing: '0.06em' }}>Cancel</Link>
         </div>
