@@ -44,6 +44,16 @@ vi.mock('@/hooks/useSubscription', () => ({
 vi.mock('@/hooks/useReferrals', () => ({
   useReferrals: () => ({ data: null, loading: false, error: null, refresh: vi.fn() }),
 }));
+vi.mock('@/hooks/useSupportRequests', () => ({
+  useSupportRequests: () => ({
+    data: [],
+    loading: false,
+    error: null,
+    refresh: vi.fn(),
+    prepend: vi.fn(),
+  }),
+  useSupportRequestActions: () => ({ create: vi.fn() }),
+}));
 vi.mock('@/lib/paypal', () => ({ AppPayPalProvider: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
 vi.mock('@paypal/react-paypal-js', () => ({
   PayPalCardFieldsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -94,6 +104,12 @@ describe('routes', () => {
 
   it('redirects unauthenticated user from /app/refer to /login', async () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/app/refer'] });
+    render(<RouterProvider router={router} />);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
+  });
+
+  it('redirects unauthenticated user from /app/support to /login', async () => {
+    const router = createMemoryRouter(routes, { initialEntries: ['/app/support'] });
     render(<RouterProvider router={router} />);
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
   });
