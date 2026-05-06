@@ -4,10 +4,19 @@ import { CadenceToggle, type Cadence } from '@/components/pricing/CadenceToggle'
 import { PlanPicker } from '@/components/pricing/PlanPicker';
 import { CascadeCancelDialog } from '@/components/workspace/CascadeCancelDialog';
 import { PayPalSubscribeButton } from '@/components/billing/PayPalSubscribeButton';
+import { CryptoCheckoutButton } from '@/components/billing/CryptoCheckoutButton';
+import { RazorpayCheckoutButton } from '@/components/billing/RazorpayCheckoutButton';
 import { usePlans } from '@/hooks/usePlans';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAccount } from '@/hooks/useAccount';
 import { useWorkspace } from '@/hooks/useWorkspace';
+
+// Cadences supported by the new Phase 6 alt-payment endpoints
+// (NOWPayments + Razorpay). Quarterly + annual SKUs are
+// `visible_in_pricing=False` in the backend catalog, so they 400 from
+// `/v1/billing/nowpayments/checkout` and `/v1/billing/razorpay/subscription`.
+// We hide alt-payment buttons for those cadences to keep the UI honest.
+const ALT_PAYMENT_CADENCES: Cadence[] = ['weekly', 'monthly'];
 
 export default function BillingUpgrade() {
   const [params] = useSearchParams();
@@ -24,6 +33,11 @@ export default function BillingUpgrade() {
   const [seatCount, setSeatCount] = useState<number>(account?.user.seat_count ?? 1);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [cascadeOpen, setCascadeOpen] = useState(false);
+  // Alt-payment error string surfaced inline below the buttons.
+  // The two alt-payment hooks (NOWPayments + Razorpay) own their own
+  // loading state; the parent only owns the visible error text so we
+  // don't double-render the same message in two places.
+  const [altPayError, setAltPayError] = useState<string | null>(null);
 
   if (plansLoading) return <p style={{ color: 'var(--color-text-dim)' }}>Loading plans...</p>;
 
@@ -119,14 +133,17 @@ export default function BillingUpgrade() {
         </div>
       ) : null}
 
-      <CadenceToggle cadence={cadence} onChange={(c) => { setCadence(c); }} />
+      <CadenceToggle
+        cadence={cadence}
+        onChange={(c) => { setCadence(c); setAltPayError(null); }}
+      />
 
       <PlanPicker
         plans={plans}
         currentSku={sku}
         cadence={cadence}
         seatCount={seatCount}
-        onPickPlan={setSku}
+        onPickPlan={(s) => { setSku(s); setAltPayError(null); }}
         onSeatCountChange={setSeatCount}
       />
 
@@ -178,11 +195,54 @@ export default function BillingUpgrade() {
             </>
           ) : (
             <p style={{ color: 'var(--color-text-dim)', fontSize: 13, margin: 0 }}>
-              The {sku} plan is not available for self-service yet. Pick a
-              solo plan to subscribe today, or email
+              The {sku} plan is not available for PayPal self-service yet.
+              Use crypto checkout below, or email
               venu-kumar@thefixer.in for a custom invoice.
             </p>
           )}
+
+          {ALT_PAYMENT_CADENCES.includes(cadence) ? (
+            <div
+              data-testid="alt-payment-buttons"
+              style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+            >
+              <p
+                style={{
+                  color: 'var(--color-text-dim)',
+                  fontSize: 11,
+                  fontFamily: 'var(--font-mono)',
+                  letterSpacing: '0.06em',
+                  margin: '6px 0 0',
+                }}
+              >
+                Or pay another way:
+              </p>
+              <CryptoCheckoutButton
+                planSku={sku}
+                seatCount={seats}
+                onError={setAltPayError}
+              />
+              <RazorpayCheckoutButton
+                planSku={sku}
+                seatCount={seats}
+                onError={setAltPayError}
+              />
+              {altPayError ? (
+                <p
+                  data-testid="alt-payment-error"
+                  style={{
+                    color: 'var(--color-danger)',
+                    fontSize: 12,
+                    margin: '4px 0 0',
+                    fontFamily: 'var(--font-mono)',
+                  }}
+                >
+                  {altPayError}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
           <Link to="/app/billing" style={{ color: 'var(--color-text-dim)', fontSize: 12, letterSpacing: '0.06em' }}>Cancel</Link>
         </div>
       ) : (
