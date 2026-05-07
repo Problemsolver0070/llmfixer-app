@@ -193,7 +193,8 @@ export function SignUpForm({ inviteToken }: { inviteToken?: string | null } = {}
     return (
       <div>
         <p style={{ fontSize: 13, color: 'var(--color-text)', marginBottom: 10 }}>
-          Check your inbox at <strong>{email}</strong> for a link to finish creating your account.
+          Check your inbox at <strong>{email}</strong>. Click the link in your email to start using
+          The Fixer.
         </p>
         <p style={{ fontSize: 12, color: 'var(--color-text-dim)', marginBottom: 18 }}>
           The link signs you in automatically. You can close this tab.

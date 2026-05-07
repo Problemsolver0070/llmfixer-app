@@ -6,7 +6,7 @@ export default function SignUp() {
   const [params] = useSearchParams();
   const inviteToken = params.get('invite');
   return (
-    <AuthShell title="Create account" subtitle="Subscribe to The Fixer. First charge in 24 hours. Cancel anytime.">
+    <AuthShell title="Create account" subtitle="Sign up free. Try 3 messages, then upgrade. Cancel anytime.">
       <SignUpForm inviteToken={inviteToken} />
     </AuthShell>
   );

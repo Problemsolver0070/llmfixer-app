@@ -43,6 +43,32 @@ describe('SignUp page', () => {
     resend.mockReset();
   });
 
+  it('renders the free-first subtitle copy (no subscribe-first framing)', () => {
+    renderAt('/signup');
+    // The "try 3 messages, then upgrade" subtitle replaces the old
+    // "Subscribe to The Fixer. First charge in 24 hours." copy.
+    expect(
+      screen.getByText(/sign up free\. try 3 messages, then upgrade\. cancel anytime\./i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/subscribe to the fixer/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/first charge in 24 hours/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the post-submit reinforcement copy after a successful signup', async () => {
+    signUp.mockResolvedValue({
+      data: { user: { id: 'u1', email: 'a@b.c' }, session: null },
+      error: null,
+    });
+    renderAt('/signup');
+    await userEvent.type(screen.getByLabelText(/^name$/i), 'Ada');
+    await userEvent.type(screen.getByLabelText(/email/i), 'a@b.c');
+    await userEvent.type(screen.getByLabelText(/password/i), 'longenough');
+    await userEvent.click(screen.getByRole('button', { name: /create account/i }));
+    expect(
+      await screen.findByText(/click the link in your email to start using the fixer\./i),
+    ).toBeInTheDocument();
+  });
+
   it('threads ?invite=<token> into the Supabase emailRedirectTo URL', async () => {
     signUp.mockResolvedValue({
       data: { user: { id: 'u1', email: 'ben@acme.io' }, session: null },

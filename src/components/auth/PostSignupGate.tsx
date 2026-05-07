@@ -1,54 +1,60 @@
-import { Navigate } from 'react-router-dom';
-import { useUserMe } from '@/hooks/useUserMe';
+import { useEffect, useState } from 'react';
+
+const CHAT_URL = 'https://chat.thefixer.in';
+
+// Small delay before the cross-origin nav so the cross-subdomain JWT cookie
+// (set by the auth state listener in App.tsx) has time to land before the
+// chat worker starts validating it.
+const REDIRECT_DELAY_MS = 200;
 
 /**
  * Post-signup landing gate.
  *
  * Mounted at `/app/post-signup`, this is the destination that the email
- * confirmation link routes to. It reads `/v1/users/me` and routes the
- * caller to the right next surface:
+ * confirmation link routes to. After the Supabase session has been set
+ * (handled automatically by the SDK because `detectSessionInUrl` is true),
+ * we redirect the caller into the chat product at `chat.thefixer.in`.
  *
- *   - hasActiveSubscription true  -> /app/setup
- *   - otherwise                   -> /app/billing/upgrade
+ * The chat worker authenticates against the cross-subdomain `sb-access-token`
+ * cookie set by the listener in `App.tsx`. We delay the redirect by 200ms
+ * to give that cookie time to be written before the cross-origin navigation.
  *
- * `RequireAuth` (the parent route) already handles unauthenticated and
- * unverified callers, so this component only runs once the caller has a
- * verified Supabase session.
+ * Edge case: if the user is already authenticated when they hit this route
+ * (e.g. by clicking the confirmation link a second time, or navigating here
+ * by hand), we still redirect to the chat. We never bounce back to the
+ * dashboard from here; manual navigation to `/app/dashboard` still works
+ * for users who want it.
  */
 export function PostSignupGate() {
-  const { loading, error, hasActiveSubscription } = useUserMe();
+  const [redirectTarget] = useState<string>(CHAT_URL);
 
-  if (loading) {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '40vh',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 12,
-          letterSpacing: '0.08em',
-          color: 'var(--color-text-dim)',
-        }}
-      >
-        Setting up your account...
-      </div>
-    );
-  }
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      window.location.href = redirectTarget;
+    }, REDIRECT_DELAY_MS);
+    return () => window.clearTimeout(handle);
+  }, [redirectTarget]);
 
-  if (error) {
-    // Soft-fail: bounce to billing so the caller has a recoverable next
-    // step. A 401 has already triggered sign-out in the api wrapper.
-    return <Navigate to="/app/billing/upgrade" replace />;
-  }
-
-  if (hasActiveSubscription) {
-    return <Navigate to="/app/setup" replace />;
-  }
-  return <Navigate to="/app/billing/upgrade" replace />;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      data-testid="post-signup-redirect"
+      data-redirect-target={redirectTarget}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '40vh',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 12,
+        letterSpacing: '0.08em',
+        color: 'var(--color-text-dim)',
+      }}
+    >
+      Taking you to The Fixer...
+    </div>
+  );
 }
 
 export default PostSignupGate;

@@ -1,11 +1,6 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, act } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-
-const mockUserMe = vi.fn();
-vi.mock('@/hooks/useUserMe', () => ({
-  useUserMe: () => mockUserMe(),
-}));
 
 import { PostSignupGate } from './PostSignupGate';
 
@@ -14,57 +9,75 @@ function renderAt(path: string) {
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/app/post-signup" element={<PostSignupGate />} />
-        <Route path="/app/setup" element={<p>Setup page</p>} />
-        <Route path="/app/billing/upgrade" element={<p>Billing upgrade</p>} />
       </Routes>
     </MemoryRouter>,
   );
 }
 
 describe('PostSignupGate', () => {
-  it('shows a loading state while useUserMe is loading', () => {
-    mockUserMe.mockReturnValue({
-      loading: true,
-      error: null,
-      hasActiveSubscription: false,
+  let hrefSetter: ReturnType<typeof vi.fn<(value: string) => void>>;
+  let originalLocation: Location;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    hrefSetter = vi.fn<(value: string) => void>();
+    originalLocation = window.location;
+    // Replace window.location so we can capture the redirect target
+    // without actually navigating in jsdom.
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      writable: true,
+      value: {
+        ...originalLocation,
+        get href() {
+          return originalLocation.href;
+        },
+        set href(value: string) {
+          hrefSetter(value);
+        },
+      },
     });
-    renderAt('/app/post-signup');
-    expect(screen.getByRole('status')).toHaveTextContent(/setting up/i);
   });
 
-  it('redirects to /app/setup when user has active subscription', async () => {
-    mockUserMe.mockReturnValue({
-      loading: false,
-      error: null,
-      hasActiveSubscription: true,
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      writable: true,
+      value: originalLocation,
     });
-    renderAt('/app/post-signup');
-    await waitFor(() =>
-      expect(screen.getByText('Setup page')).toBeInTheDocument(),
-    );
+    vi.useRealTimers();
   });
 
-  it('redirects to /app/billing/upgrade when no active subscription', async () => {
-    mockUserMe.mockReturnValue({
-      loading: false,
-      error: null,
-      hasActiveSubscription: false,
-    });
+  it('renders a redirect status while the timer is pending', () => {
     renderAt('/app/post-signup');
-    await waitFor(() =>
-      expect(screen.getByText('Billing upgrade')).toBeInTheDocument(),
-    );
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent(/taking you to the fixer/i);
+    expect(status).toHaveAttribute('data-redirect-target', 'https://chat.thefixer.in');
   });
 
-  it('redirects to /app/billing/upgrade on API error', async () => {
-    mockUserMe.mockReturnValue({
-      loading: false,
-      error: new Error('boom'),
-      hasActiveSubscription: false,
-    });
+  it('redirects to https://chat.thefixer.in after a 200ms delay', () => {
     renderAt('/app/post-signup');
-    await waitFor(() =>
-      expect(screen.getByText('Billing upgrade')).toBeInTheDocument(),
-    );
+    expect(hrefSetter).not.toHaveBeenCalled();
+
+    // 199ms is not enough; the redirect must wait the full 200ms.
+    act(() => {
+      vi.advanceTimersByTime(199);
+    });
+    expect(hrefSetter).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(hrefSetter).toHaveBeenCalledWith('https://chat.thefixer.in');
+    expect(hrefSetter).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not navigate if the component unmounts before the delay', () => {
+    const { unmount } = renderAt('/app/post-signup');
+    unmount();
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(hrefSetter).not.toHaveBeenCalled();
   });
 });
