@@ -16,6 +16,9 @@ export default function Dashboard() {
       </h1>
       <TheFixerAiCard />
       <Card>
+        <DemoAnnouncement />
+      </Card>
+      <Card>
         <AccountStateCard
           hasActiveSubscription={hasActiveSubscription}
           compUntil={u.comp_until}
@@ -42,6 +45,25 @@ export default function Dashboard() {
           <Link to="/app/setup">Documentation</Link>
         </div>
       </Card>
+    </div>
+  );
+}
+
+function DemoAnnouncement() {
+  return (
+    <div>
+      <p style={{ fontSize: 11, letterSpacing: '0.18em', color: 'var(--color-accent-copper-bright)', textTransform: 'uppercase', margin: 0 }}>
+        Free demo
+      </p>
+      <p style={{ fontSize: 16, margin: '8px 0' }}>
+        Want to see The Fixer on your own workflow before you pay? Open Support and ask for a free demo.
+      </p>
+      <p style={{ fontSize: 12, color: 'var(--color-text-dim)', margin: '0 0 10px' }}>
+        We can help you test setup, model fit, and billing fit first.
+      </p>
+      <Link to="/app/support" style={{ color: 'var(--color-accent-bright)' }}>
+        Ask for a free demo
+      </Link>
     </div>
   );
 }
