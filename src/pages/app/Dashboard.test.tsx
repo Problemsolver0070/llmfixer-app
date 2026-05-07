@@ -44,6 +44,15 @@ describe('Dashboard', () => {
     expect(screen.getByTestId('fixer-ai-card')).toBeInTheDocument();
   });
 
+  it('shows free demo announcement with support link', () => {
+    setup({ status: 'expired' }, false);
+    expect(screen.getByText(/want to see the fixer/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /ask for a free demo/i })).toHaveAttribute(
+      'href',
+      '/app/support',
+    );
+  });
+
   it('shows comp_until date for comp users', () => {
     setup({ status: 'active', comp_until: '2026-06-01T00:00:00Z', paypal_sub_id: null }, true);
     expect(screen.getByText(/paid through/i)).toBeInTheDocument();
