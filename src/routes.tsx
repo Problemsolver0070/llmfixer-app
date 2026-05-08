@@ -13,6 +13,8 @@ import VerifyEmail from '@/pages/public/VerifyEmail';
 import RecoveryRedeem from '@/pages/public/RecoveryRedeem';
 import Pricing from '@/pages/public/Pricing';
 import PricingEnterprise from '@/pages/public/PricingEnterprise';
+import RefundPolicy from '@/pages/public/RefundPolicy';
+import PrivacyPolicy from '@/pages/public/PrivacyPolicy';
 import Dashboard from '@/pages/app/Dashboard';
 import Setup from '@/pages/app/Setup';
 import { Models } from '@/pages/app/Models';
@@ -52,6 +54,8 @@ export const routes: RouteObject[] = [
   { path: '/recovery', Component: RecoveryRedeem },
   { path: '/pricing', Component: Pricing },
   { path: '/pricing/enterprise', Component: PricingEnterprise },
+  { path: '/refund-policy', Component: RefundPolicy },
+  { path: '/privacy-policy', Component: PrivacyPolicy },
   {
     path: '/app',
     element: (

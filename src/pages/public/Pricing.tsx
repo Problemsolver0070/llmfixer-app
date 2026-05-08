@@ -164,7 +164,7 @@ export default function Pricing() {
         </section>
 
         <section className="pricing-footnote">
-          Hit a usage limit? <a href="mailto:venu-kumar@thefixer.in?subject=Limit%20on%20api.thefixer.in">Tell us</a> and we will resolve it or refund you in full. 24-hour refund window from any charge. Prices in USD. Pay with crypto (300+ coins via NOWPayments) or Razorpay (UPI / cards / NACH for India, INR billed at the live FX rate).
+          Hit a usage limit? <a href="mailto:venu-kumar@thefixer.in?subject=Limit%20on%20api.thefixer.in">Tell us</a> and we will resolve it or refund you in full. <a href="/refund-policy">24-hour refund window</a> from any charge, partial pro-rated refunds after that. Prices in USD. Pay with crypto (300+ coins via NOWPayments) or Razorpay (UPI / cards / NACH for India, INR billed at the live FX rate).
         </section>
       </main>
     </div>

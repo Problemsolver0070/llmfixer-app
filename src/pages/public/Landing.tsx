@@ -127,9 +127,18 @@ export default function Landing() {
           color: 'var(--color-text-dim)',
           letterSpacing: '0.04em',
           textAlign: 'center',
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 16,
         }}
       >
-        thefixer.in
+        <span>thefixer.in</span>
+        <a href="/privacy-policy" style={{ color: 'var(--color-text-dim)', textDecoration: 'none' }}>
+          Privacy policy
+        </a>
+        <a href="/refund-policy" style={{ color: 'var(--color-text-dim)', textDecoration: 'none' }}>
+          Refund policy
+        </a>
       </footer>
     </div>
   );
